@@ -1,18 +1,18 @@
 ---
 title: Monitoring and Logging
 weight: 20
-last_reviewed_on: "2024-04-10"
+last_reviewed_on: "2025-01-10"
 review_in: 6 months
 ---
 
 # Monitoring and Logging
 
 Generally, this is done with the AWS tooling. There is information in
-ECS about resource usage, and further information in Cloudwatch. We also log application errors to [Sentry].
+ECS about resource usage, and further information in AWS Cloudwatch. We also log application errors to [Sentry](https://sentry.io/auth/login/).
 
 Please see the [Monitoring page for infrastructure](https://dev-docs.wifi.service.gov.uk/infrastructure/monitoring.html#monitoring) for specific information around this topic.
 
-## Admin app
+## Admin App
 
 Additionally, requests that pass through the load balancer for the
 Admin app are recorded in an S3 bucket.
