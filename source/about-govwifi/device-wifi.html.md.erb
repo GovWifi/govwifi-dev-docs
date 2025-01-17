@@ -1,89 +1,135 @@
 ---
-title: About the Device Wifi Alpha
+title: About Device Wifi & Certificate Based Authentication
 weight: 11
 
-last_reviewed_on: "2023-04-24"
+last_reviewed_on: "2025-01-24"
 review_in: 12 months
 ---
 
-# About the 'device wifi' alpha
+# About Device Wifi & Certificate Based Authentication
 
-This page explains the 'device wifi' alpha that we ran in early 2020.
+## What is it?
+Certificate Based Authentication (abbreviated to CBA and previously known as device wifi), is a secure method used to verify the identity of users or devices when connecting to wifi networks.
 
-A few organisations took part. Device wifi is not currently available to organisations and we're not progressing this at the moment (January 2021). We may do so in the future though.
+## How does it work GovWifi?
+Instead of entering a username and password to authenticate to a GovWifi network, a unique certificate is added to the user's device (e.g. a laptop or phone) which allows the device to automatically login to any GovWifi network close by.
 
-Device wifi is also referred to as 'certificate-based authentication'.
+Here’s  simplified breakdown of the steps:
 
-## What is device wifi?
+1. A network administrator generates a chain of certificates. Copies of these certificates are uploaded to our RADIUS servers and the user's managed device.
+1. When a managed device attempts to connect to the wifi network, it presents its digital certificate to the RADIUS authentication server.
+1. RADIUS verifies the presented certificate against those it has stored.
+1. If all verifications are successful, access to the network is granted
 
- Currently, end users need to create their GovWifi account themselves by either:
+The actual process is much more complex, but it may be helpful to think of certificate chains as jigsaw puzzle pieces. RADIUS and the user's device each have a unique puzzle piece and when all the pieces fit together correctly they complete the jigsaw and the user gains access.  
 
-- sending a blank email to us from a public sector email address
-- sending a text message to us
-- asking a public sector worker to email us with the end user's email address
+<img src="/images/device_wifi_simple.png" alt="Simple diagram of certificate based authentication showing a user's device connecting to a wifi network using a certificate">
 
-They are sent credentials to sign in with.
+#### Advantages
 
-With device wifi, the device connects to the internet using trusted certificates, instead of the person's username and password.
+* **Cryptographic authentication:** When well managed, CBA is more secure than traditional password-based methods.
+* **Eliminates the need for shared passwords:** Against our recommendations some organisations share passwords and usernames between devices. 
+* **Automatic Login:** Users can log in automatically without needing to enter passwords, facilitating a smoother user experience.
 
-## The user need
+#### Disadvantages
 
-Some organisations told us they needed devices to connect to the internet through certificates instead of credentials. They were already using workarounds to meet their needs.
+* Requires the network administrators to have expert knowledge of PKI(Public Key Infrastructure) and CBA in order to generate and manage their certificates.
+* Requires additional work/knowledge from network administrators to set up and maintain the infrastructure behind CBA.
 
-To connect multiple managed devices to GovWifi quickly, staff members working in IT teams have used their own GovWifi usernames and passwords. This includes when they needed to:
 
-- make sure lots of new people joining at once would have immediate access to the internet
-- connect standalone devices, like printers, monitors or shared laptops
+## Infrastructure
+Organisations that offer GovWifi can upload root and intermediate certificates via the GovWifi Admin site. These are validated and copied to our RADIUS server from an S3 bucket when the servers reboot each night, below is a diagram and detailed explanation of the process, complete with links to code. 
 
-This means that the IT staff member's GovWifi account details were associated to hundreds of devices. Any malicious internet activity on those devices would be attributed to them.
+### GovWifi CBA Architecture Diagram
 
-## How it works
+<img src="/images/govwifi_cba_diagram.png" alt="Diagram showing the architecture of GovWifi CBA">
 
-Certificate based authentication gives devices automatic access to GovWifi as long as they have a valid certificate issued by Public Key Infrastructure (PKI) trusted by GovWifi service. Organisations become trusted when their Certification Authority (CA) certificates are uploaded to the FreeRADIUS infrastructure.
+An organisation uploads their root and intermediate certificates to our system via the GovWifi Admin portal. The certificates are always in PEM format.
 
-1. Organisations register on the GovWifi admin site.
-2. They set up the “GovWifi” SSID on their local network.
-3. They set up a “Certificate Authority” using a Public Key Infrastructure (PKI) software tool. This lets them sign certificates.
-4. Using their PKI, they can sign client certificates (certificates that will be used by any devices being connected to GovWifi).
-5. They give us their root/intermediate CA certificate used to sign these client certificates.
-6. Devices can now connect to the internet via GovWifi wherever GovWifi is offered. When connecting to GovWifi, EAP-TLS needs to be selected.
+1. We validate the root certificate by checking the following:
+<ul>
+    <li> If it is an X.509 certificate
+    <li> The expiry date
+    <li> Whether intermediate certificate has a parent (the organisation must upload a root certificate first).
+    <li> If the root certificate is unique
+    [The code for certificate validation is found in the GovWifi Admin repo](https://github.com/GovWifi/govwifi-admin/blob/35942b47b183ce169f15f6affd870da711659c63/app/models/certificate.rb#L1-L65)
+</ul>
 
-![process]
+2. The organisations' root and intermediate certificates are stored in the [Admin database, in the certificates table](https://github.com/GovWifi/govwifi-admin/blob/d3e6b74be99cda12685abb615e44974f33c67ee9/db/schema.rb#L49-L63).
+3. The certificate files are exported from the database, zipped then pushed/uploaded to an S3 bucket at 10pm every night. The `export_certificates` rake task is responsible for this 
+    <ul>
+        <li> [Terraform for rake task](https://github.com/GovWifi/govwifi-terraform/blob/6887d90b4402a5d7f26f9cb018db73439155f502/govwifi-admin/scheduled-tasks.tf#L195-L235) that uploads the certificates to S3 as a zip file.
+        <li> [Govwifi Admin Code](https://github.com/GovWifi/govwifi-admin/blob/d3e6b74be99cda12685abb615e44974f33c67ee9/lib/tasks/export_certificates.rake#L3)
+    </ul>
+4. When the radius servers restart after midnight, the organisation's certificates are copied to the ECS containers and stored in the `/etc/raddb/certs/trusted_certificates` directory. This is done by a [shell script](https://github.com/GovWifi/govwifi-frontend/blob/63391e26e5249e3375f751fe1280166e5bf81353/raddb.sh#L15-L23) that downloads the zip file containing the certificates  from S3, unzips it and copies the certificates to the RADIUS container. The unzipping process adds an extra layer of error checking to this process as it ensures that all certificates are uploaded in their entirety. If the zip file contains errors, or is missing a certificate then new RADIUS containers will not be recreated, and the containers from the previous night will keep running, preventing an outage.
 
-## Where to find the code
+## How can organisations set it up?
 
-The code for certificate authentication is in the [govwifi-frontend repo](https://github.com/alphagov/govwifi-frontend).
+### Requirements 
+Organisations **MUST** have met the following requirements before they will be able to use GovWif's Certificate Based Authentication(CBA): 
+<ul>
+    <li> Organisations need to have set up Public Key Infrastructure(PKI) successfully on their systems and deployed it to a managed device.They should be comfortable with PKI and how to configure it. GovWifi can offer no support on this.
+    <li> Organisations must have a plan in place for keeping their TLS certificates up to date and secure. 
+</ul>
 
-The EAP-TLS is handled in [FreeRADIUS](https://github.com/alphagov/govwifi-frontend/blob/master/radius/mods-enabled/eap#L7).
+In the next section there is an example architecture diagram showing how an organisation could integrate PKI (Public Key Infrastructure) with their system.
 
-There's a [root CA certificates folder](https://github.com/alphagov/govwifi-frontend/blob/4b65fd464c7362ad8bb5d0773ec61177faf90eb2/Dockerfile#L49) in.
+### A note on GovWifi CBA technical support
+GovWifi are unable to offer in depth support regarding the set up of Public Key Infrastructure organisation's side of the setup or the generation or deployment of certificates to devices. This is because our client set ups vary greatly and this should be done by an inhouse expert. 
 
-### How to receive changes to root/intermediate CA certificates from organisations
+GovWifi's only role is to enable the CBA option for the organisation on our [Admin Site](https://admin.wifi.service.gov.uk/) once we have ensured the requirements and risks of using Certificate Based Authentication (CBA) have been understood.
 
-Receiving changes to certificates would be a common task for developers if we supported device wifi.
+## What does the GovWifi team need to do when an organisation wants to use CBA?
 
-Organisations send us their root/intermediate CA certificates. These are kept in `govwifi-build`, in the encrypted file `passwords/certs/production/ca.pem.gpg`. If an organisation wants to send us new certificates or delete existing ones, this file would need to be edited to add or remove them.
+First make sure they understand the [requirements](#requirements).
 
-To edit this file, do this:
+### Enabling CBA for new organisations
+In order to enable the CBA feature for network administrators, follow the steps below:
 
-`PASSWORD_STORE_DIR=<password_store_dir> pass edit passwords/certs/production/ca.pem`
+1. Make sure you are logged in to the GovWifi Admin site as a Superuser. You should see the title  "GovWifi Super User Administrators" at the top of the page.
+<img src="/images/super_user.png" alt="Screenshot showing the GovWifi Admin site with the title 'GovWifi Super User Administrators' at the top of the page">
+2. Select "All Organisations" from the list on the left.
+3. Select the organisation that you want to enable CBA for from the list that appears.
+4. On the organisation landing page, scroll down until you see the "Enable CBA" button and click it.
+<img src="/images/enable_cba.png" alt="Screenshot showing the GovWifi Admin site with the 'Enable CBA' button highlighted">
+5. The organisation's network administrator will then be able to login and add their certificates. If they click on the "Certificates" menu item they will taken to a page where they can upload their root and intermediate certificates. Their new certificates will not be uploaded to the GovWifi RADIUS servers until they are restarted after midnight.
+<img src="/images/certificates_section.png" alt="Screenshot showing the GovWifi Admin site with on the Certificates">
 
-[To release the certificates on to the RADIUS servers follow the instructions](https://dev-docs.wifi.service.gov.uk/infrastructure/certificate-rotation.html#how-to-rotate-the-certificates).
+### Additional resources that the team can use to guide admins through the setup process
+Some of these are work in progress(WIP) documents and may not be complete.
 
-## Common issues with device wifi
+* [GovWifi CBA onboarding - Guidance for Admins - Setting up Mac Devices](https://docs.google.com/document/d/170EbZvjXKy32RDNRJhb7gDipUNJI9stgpD3K7u_zEDU/edit?tab=t.0#heading=h.f2cqrsf8bxv3) 
+* [WIP: CBA explainer and how to adopt (for network admins)](https://docs.google.com/document/d/1Znahzkzbu77_gRqVSSfEguyAye-qy18OtK0dCxuZUC0/edit?tab=t.0#heading=h.wyvvsc3017vs) 
+* [Troubleshooting CBA on Windows machines](https://docs.google.com/document/d/10d_LmLOwa25-QFjK4aaCOaYbr-MYugDGDB3ABVpsfEY/edit?tab=t.0)
 
-We know that:
+## Example set up of PKI (Public Key Infrastructure)
 
-- device wifi is more difficult to set up and manage than the current GovWifi offer, especially for organisations with limited IT resource or using a Windows operating system
-- some organisations do not know how certificate authentication works, specifically openSSL
-- organisations may not know that certificates expire
-- the time taken to receive certificates from organisations is much longer than anticipated
-- organisations have to get security permissions and sign off from decision makers before they can send certificates
-- organisations may send us CA certificates that either don't have the full chain of trust or aren't actually the CA certificates that signed the client certificates
-- the process of receiving certificates by email and uploading them manually is time consuming
+Below is a diagram of an example set up of PKI infrastructure, integrated with Windows Active Directory. It can be used to give organisations a high level idea of the kind of infrastructure they will need to set up in order to implement PKI. This is only meant as a rough guide, organisations will need to sit down with their own internal technical experts to work out their own individual plan.
 
-[process]: ../images/cert-auth.png
+<image src="/images/pki_example.png" alt="Diagram showing an example set up of PKI infrastructure integrated with Windows Active Directory">
 
-## Find out more
 
-You can [read more about device wifi](https://drive.google.com/drive/folders/1TFz9ltcEAMkUI1sePreig9od87vWx6dK).
+**Explanation of diagram**
+<ul>
+    <li> A standalone server stores the Root CA (depicted on the far left in the "workgroup box"). This server should be highly secure, and can even be kept offline or powered down when it's not in use. It's only job is to generate and store the organisation's self signed root certificate.
+    <li> The Active directory machine/server can be thought of as a controller, or provisioning machine that is used to install software on end user devices (represented in the diagram by the laptops). It is also used to ensure that the software on the machine is kept up to date. When a new laptop first comes online, this provisioning machine:
+    <ul>
+        <li> Copies root certificate onto the devices
+        <li> Sets up the wifi configuration and SSID on the machine (in this case GovWifi).
+    </ul> 
+</ul>
+The PKI Machine/ Public Key Infrastructure Issuing CA is used to install unique **device** certificates on each of the end user machines. The devices are then able to connect to a wifi network using TLS.
+
+In depth instructions on setting up wifi authentication via TLS on Windows can be found in the [GovWifi Private Key Infrastructure (PKI) setup and maintenance document](https://docs.google.com/document/d/1xS1hNjVwu7N0S8OWnwyKCvVOjV5gmjyn0H7uzLQm57A/edit?tab=t.0#heading=h.fvh9u8mr3dg5). You will need to be a member of the GovWifi core team to access it.
+
+## PKI Management Software For Organisations Looking To Setup CBA
+
+Some organisations use software such as [Jamf](jamf.com), [Microsoft InTune](https://learn.microsoft.com/en-us/mem/intune/protect/microsoft-cloud-pki-overview) or [Entrust](https://www.entrust.com/products/digital-certificates/tls-ssl) to manage their systems for them. Microsoft Intune can be used alongside Microsoft Cloud PKI to manage certificates on devices.
+
+**Please note GovWifi doesn't offer support for third party software.**
+
+## More Information
+
+More information can be found in the [CBA folder of our Google Drive](https://drive.google.com/drive/folders/1TFz9ltcEAMkUI1sePreig9od87vWx6dK). Please note, you will need to be a member of the GovWifi core team to view these documents as some contain private information.
+
+This includes design decisions and documentations, as well information about the Beta and Alpha phases of this feature.
