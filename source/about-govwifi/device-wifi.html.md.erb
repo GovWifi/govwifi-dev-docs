@@ -63,6 +63,11 @@ An organisation uploads their root and intermediate certificates to our system v
     </ul>
 4. When the radius servers restart after midnight, the organisation's certificates are copied to the ECS containers and stored in the `/etc/raddb/certs/trusted_certificates` directory. This is done by a [shell script](https://github.com/GovWifi/govwifi-frontend/blob/63391e26e5249e3375f751fe1280166e5bf81353/raddb.sh#L15-L23) that downloads the zip file containing the certificates  from S3, unzips it and copies the certificates to the RADIUS container. The unzipping process adds an extra layer of error checking to this process as it ensures that all certificates are uploaded in their entirety. If the zip file contains errors, or is missing a certificate then new RADIUS containers will not be recreated, and the containers from the previous night will keep running, preventing an outage.
 
+### CBA and the GovWifi smoketests
+
+In order for the [smoketests](https://github.com/GovWifi/govwifi-smoke-tests) to work properly they require two dummy TLS certificates to be generated. If you set up a new environment (for example another staging or development environment, or if you need to create a new production environment in the case of a BCP/DR scenario) then you will need follow the [certificate generation instructions](https://github.com/GovWifi/govwifi-smoke-tests/tree/main?tab=readme-ov-file#new-environments).
+
+
 ## How can organisations set it up?
 
 ### Requirements 
@@ -133,3 +138,16 @@ Some organisations use software such as [Jamf](jamf.com), [Microsoft InTune](htt
 More information can be found in the [CBA folder of our Google Drive](https://drive.google.com/drive/folders/1TFz9ltcEAMkUI1sePreig9od87vWx6dK). Please note, you will need to be a member of the GovWifi core team to view these documents as some contain private information.
 
 This includes design decisions and documentations, as well information about the Beta and Alpha phases of this feature.
+
+### CBA Presentations
+Produced whilst CBA was in development certain features may have changed:
+
+[Presentation GovWifi EAP-TLS auth and PKI](https://docs.google.com/presentation/d/1jchmI9SFFdJ0btjYJieFihgCIBV12Rz4b04_YGG1x4Y/edit#slide=id.g2e15f9becfb_0_556)
+
+### Files related to the CBA discovery project
+
+* [Videos, documents and others](https://drive.google.com/drive/folders/1MlAHuAsOftu-BpH-VYVR2BYNpKQr6fYI)
+* [Infrastructure Diagrams](https://drive.google.com/drive/folders/1rNuYpO4d7v1szz5ddvui2mkFGNi4XqNX)
+
+
+
