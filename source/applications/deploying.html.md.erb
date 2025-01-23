@@ -1,18 +1,17 @@
 ---
 title: Deploying applications
 weight: 20
-last_reviewed_on: "2024-07-20"
+last_reviewed_on: "2025-01-23"
 review_in: 6 months
 ---
 
 # Deploy applications
 
-Deploying 9 systems out at the same time can be a non-trivial task. This should
-help explain how we do it.
+Deploying 9 systems out at the same time can be a non-trivial task. This should help explain how we do it.
 
 ## AWS Codepipeline
 
-Deploying GovWifi is achieved via AWS Codepipeline and Codebuild. The code for this is found in the govwifi-deploy module of the [govwifi-terraform repo](https://github.com/alphagov/govwifi-terraform).
+Deploying GovWifi is achieved via AWS Codepipeline and Codebuild. The code for this is found in the [govwifi-deploy module of the govwifi-terraform repo](https://github.com/alphagov/govwifi-terraform).
 
 ## Core services
 
@@ -33,9 +32,12 @@ Instructions for deploying the Frontend RADIUS service can be found [here](https
 The [Dev Docs][dev-docs-repo], [Tech Docs][tech-docs-repo], and [Product Page][product-page-repo]
 use a static site generator called [Middleman][middleman]. They are hosted on Github Pages.
 
-### Production
+Each repo has it's own Github actions workflow which both tests and deploys to [Github Pages](https://docs.github.com/en/pages), when a PR is created it will run a test then when a PR is pushed to the `master` branch it will deploy to github pages. Example from our [dev-docs](https://github.com/alphagov/govwifi-dev-docs/blob/master/.github/workflows/deploy.yml).
 
-Each repo has it's own Github actions workflow which both tests and deploys to [Github Pages][https://docs.github.com/en/pages], when a PR is created it will run a test then when a PR is pushed to the `master` branch it will deploy to github pages. Example from our [dev-docs](https://github.com/alphagov/govwifi-dev-docs/blob/master/.github/workflows/deploy.yml).
+#### Test your build locally
+
+1. You can test any of the documentation sites locally by running `make serve` in the root of the repo.
+2. This will start a local server at `http://localhost:4567/` where you can view the site.
 
 #### Trigger a test build.
 
