@@ -1,7 +1,7 @@
 ---
 title: How to update GovWifi content
 weight: 10
-last_reviewed_on: "2023-06-15"
+last_reviewed_on: "2025-01-23"
 review_in: 12 months
 ---
 
@@ -15,11 +15,11 @@ For each type of content that makes up the GovWifi service, this page explains w
 
 The [product pages](https://www.wifi.service.gov.uk/) contain information for end users about how to connect to GovWifi and troubleshoot any problems they’re having.
 
-Here’s the [product pages repo](https://github.com/alphagov/govwifi-product-page). They’re written in Ruby.
+Here’s the [product pages repo](https://github.com/GovWifi/govwifi-product-page). They’re written in Ruby.
 
 ### Who
 
-A content designer should be responsible for updates to the product pages.
+A content designer should be responsible for updates to the product pages. In the absence of a content designer, a product manager or engagement manager should be responsible.
 
 ### How
 
@@ -31,19 +31,17 @@ When you’ve raised the PR for your changes, get a review from a developer and 
 
 Ask a developer if you need help.
 
-There’s a [Google datastudio dashboard](https://datastudio.google.com/reporting/60ddcf7e-668b-4a29-b5ab-e27007b5e27e/page/ycpjB) to see how these pages are performing.
-
 ## Technical documentation
 
 ### What
 
 The [technical documentation](https://docs.wifi.service.gov.uk/) includes an overview of what GovWifi is, and instructions on how to set up and manage GovWifi for organisations.
 
-Here’s the [tech docs repo](https://github.com/alphagov/govwifi-tech-docs). The code is based on the tech docs template owned by the technical writers. You can edit the content using Markdown.
+Here’s the [tech docs repo](https://github.com/GovWifi/govwifi-tech-docs). The code is based on the tech docs template owned by the technical writers. You can edit the content using Markdown.
 
 ### Who
 
-A technical writer or content designer should be responsible for any updates to the tech docs.
+A technical writer or content designer should be responsible for any updates to the tech docs. In the absence of a content designer, a product manager or engagement manager should be responsible.
 
 ### How
 
@@ -54,9 +52,7 @@ There are two ways to update it depending what you need to do:
 
 If the team does not have a technical writer, get a 2i from one if you can.
 
-Ask a developer if you need help. Use the [Govspeak preview app](https://govspeak-preview.herokuapp.com/) if you need help with Markdown.
-
-There’s a [Google data studio dashboard](https://datastudio.google.com/reporting/60ddcf7e-668b-4a29-b5ab-e27007b5e27e/page/ycpjB) to see how these pages are performing.
+Ask a developer if you need help.
 
 ## GovWifi admin
 
@@ -64,9 +60,9 @@ There’s a [Google data studio dashboard](https://datastudio.google.com/reporti
 
 GovWifi admin is where admin users can set up GovWifi for their organisation and view user logs.
 
-This is [GovWifi admin (production)](https://admin.wifi.service.gov.uk/users/sign_in). This is [GovWifi admin (staging)](https://admin.staging-temp.wifi.service.gov.uk/users/sign_in).
+This is [GovWifi admin (production)](https://admin.wifi.service.gov.uk/users/sign_in). This is [GovWifi admin (staging)](https://admin.staging.wifi.service.gov.uk/users/sign_in).
 
-Here’s the [GovWifi admin repo](https://github.com/alphagov/govwifi-admin). It’s written in Ruby.
+Here’s the [GovWifi admin repo](https://github.com/GovWifi/govwifi-admin). It’s written in Ruby.
 
 ### Who
 
@@ -147,4 +143,3 @@ When you add a new macro, add 2 tags:
 - one in the format ‘govwifi-[enduser or adminuser]-[macro description]’
 - one in the format ‘m_[the long number after the / in the page URL]’
 
-This makes sure we can track how often we use each macro over time in the [Zendesk analytics dashboard](https://govuk.zendesk.com/explore/dashboard/AB421FC5FD1465B4000E84EA293E6D67B8E0F0C275D8F0CF86CF1BEF9AC3B351).
