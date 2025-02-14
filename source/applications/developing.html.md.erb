@@ -48,7 +48,7 @@ Pull requests are linted and tests are run on via GitHub Actions, the resulting 
 
 ## Merging and deploying changes
 
-Once approved and merged your PR is automatically built and deployed to our staging environment where you can perform further acceptance testing and [smoke testing](https://github.com/GovWifi/govwifi-smoke-tests). After that, deploying to production is a manual step in AWS Codepipeline.
+Once approved and merged your PR is automatically built and deployed to our development environment where you can perform further acceptance testing and [smoke testing](https://github.com/GovWifi/govwifi-smoke-tests). After that, deploying to production is a manual step in AWS Codepipeline.
 
 Our pipelines include a step to force an update to the ECS tasks which are configured to use the latest image pushed to ECR.
 
