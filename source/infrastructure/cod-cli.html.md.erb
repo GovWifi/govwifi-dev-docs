@@ -1,0 +1,69 @@
+---
+title: COD cli
+weight: 20
+last_reviewed_on: "2025-03-04"
+review_in: 12 months
+---
+
+# COD CLI 
+
+## What is it?
+COD cli is an essential command line tool used by engineers on the GovWifi team and other teams in CO Digital. The COD cli was cloned from [GDS cli](https://github.com/alphagov/gds-cli), then tailored to the needs of CO Digital and GovWifi staff. 
+
+It is installed using [homebrew](https://brew.sh/). In depth installation instructions can be found in the [cod-cli repo Readme](https://github.com/GovWifi/cod-cli/blob/main/README.md) and our team manual.
+
+## How it works
+The code for COD cli is split over two github repositories
+[cod-cli](https://github.com/GovWifi/cod-cli)
+[homebrew-cod](https://github.com/GovWifi/homebrew-cod)
+
+The first repo cod-cli is private, and should remain so as it contains sensitive information. It is only accessible by members of the GovWifi github organisation. It contains all the code used in the cod-cli application. If you edit the code, you will need to release a new version of the cod-cli and reinstall it. Instructions on how to compile and release a new version of the cod-cli can be found in the [Readme](https://github.com/GovWifi/cod-cli?tab=readme-ov-file#release-a-new-version).
+
+### Cod-cli Github Actions & Workflows
+There is a github action to test and release the cod-cli. It will run automatically if you release a new version of the cod-cli. [Instructions on how to release a new version are in the Readme](https://github.com/GovWifi/cod-cli?tab=readme-ov-file#release-a-new-version).
+
+### Essential secrets
+For the github action to run correctly the `GHA_PAT` repository secret needs to be set. This secret is a [Fine-grained personal access token](https://github.blog/security/application-security/introducing-fine-grained-personal-access-tokens-for-github/) labeled "COD cli release token" and needs the following permissions:
+
+#### Repository access
+GovWifi/cod-cli
+GovWifi/homebrew-cod
+
+#### Repository permissions:
+* **Read access to:** administration and metadata
+* **Read and Write access** to:  actions, actions variables, attestations api, code, commit statuses, deployments, discussions, environments, issues, merge queues, repository advisories, repository custom properties, repository hooks, secret scanning alerts, secrets, security events, and workflows
+
+#### Renewing Github Action Secrets
+You can [create the secret following these instructions](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). **Make sure that the secret can be managed by the GovWifi organisation.** This ensures any engineer on the GovWifi team can manage the secret, and it will not be lost if you move teams. Also ensure that it has the same permissions listed above, or the cod-cli release process will not work. The token will automatically expire after a year (this is an organisational security policy and cannot be changed). You should set a reminder in the GovWifi team calendar to rotate it a few days before expiry, so that the cod-cli release process does not break unexpectedly.
+
+## Homebrew 
+Homebrew is a tool for macOS and Linux that helps you easily install and manage software from the terminal. It handles dependencies for you. Below is a diagram showing how homebrew works with the cod-cli
+
+<img src="/images/govwifi_homebrew_cli" alt="Diagram showing the flow of the cod-cli installation process" width="800"/>
+
+Exaplainaiton of the diagram steps:
+1. Running the `brew install` command on your local machine downloads and installs the cod-cli application from the govwifi/cod homebrew tap. Homebrew taps are created simply by making a github repository called "homebrew" followed by the name of your custom homebrew application (in our case homebrew-cod). The `brew` command goes first to the `https://github.com/GovWifi/homebrew-cod` github repo and looks for a directory named "Formula". Homebrew will follow the instructions in the [formula file](https://github.com/GovWifi/homebrew-cod/blob/master/Formula/cod-cli.rb) to download and install the application and it's dependencies.
+2. The instructions in [Formula/cod-cli.rb](https://github.com/GovWifi/homebrew-cod/blob/master/Formula/cod-cli.rb) tell homebrew to check what operating system the user is running and then download the appropriate binary from [https://github.com/GovWifi/cod-cli/releases](https://github.com/GovWifi/cod-cli/releases).
+3. After the appropriate binary file for the user's system is downloaded, it is installed by homebrew along with it's dependencies. After this, the user will be able to run the cod-cli like any other command line application.
+
+A user can also download a binary directly from the cod-cli repo, and install it using another method of their choosing should they wish to.
+
+### Developing the cod-cli
+Got a feature you want to add? A bug you'd like to fix? If you need to work on the cod-cli you'll need a working Go tool chain installed on your machine. See the [cod-cli Readme](https://github.com/GovWifi/cod-cli/blob/main/README.md#build-cod-cli) for further information.
+ 
+If you're new to Go, the online learning platform [Plural Sight has a great introduction course called Go Fundamentals](https://www.pluralsight.com/courses/go-fundamentals). You should be able to get a subscription to Plural Sight if you haven't yet used your learning and development budget for the year. Talk to your line manager to find out more.
+
+## History and GDS Migration
+The cod-cli started life as the [gds-cli](https://github.com/alphagov/gds-cli). GDS (Government Digital Service) was a pioneering department that was created in 2011, and later merged with DSIT in 2025. The gds-cli is a highly useful command line tool that enabled engineers to work quickly and efficiently across multiple projects. It also helped reduce silos through tool sharing, and made it easier to onboard and offboard engineers to teams due to tool consistency.
+
+### Why GovWifi forked the homebrew-gds repo
+In 2025 GDS merged with another government department and split with CO Digital. GovWifi started life as a project within GDS and was transferred along with severals staff to CO Digital. As such GovWifi still shared many tools with GDS and had access to GDS github repos. To retain access to a version of these tools after the split completes, the GovWifi team needed to either copy or fork a number of GDS repos so we did not lose access to critical tools or functionality. 
+
+### Why GovWifi copied the gds-cli repo
+For the same reasons as above the [gds-cli](https://github.com/alphagov/gds-cli) repo was copied to cod-cli(https://github.com/GovWifi/cod-cli). This repo is private as it contains sensitive data, and you will need to be a member of the GovWifi team to view it. GovWifi have chosen to copy rather than fork this repo as GDS had made the gds-cli repo "internal". If the repository is marked as "internal" within an organisation, it cannot be forked to another organisation, even if both organizations allow forking (internal repositories are meant for individual user forks within the same organisation).
+
+The forks of private repos are also automatically deleted when the parent repo is deleted. Github states: "If collaborator permissions are removed from someone contributing to a private repository on your personal account, their fork will be deleted". This means that if GovWifi had chosen to fork the gds-cli repo and GDS then removed the GovWifi team's individual accounts from its organisation, we would have lost access to any private forks we had created. 
+
+With these two points in mind, we decided the best solution was to copy the gds-cli repo to a brand new repo (i.e. cod-cli). 
+
+It is also worth mentioning that deleting a public repository does not delete its forks. The forks remain as independent repositories, even when the original repo is destroyed. **So this was not a risk with the [homebrew-cod](https://github.com/GovWifi/homebrew-cod) fork, as this repo is public**. More information about the deletion of forks can be found in [Github's Documentation](https://docs.github.com/en/repositories/creating-and-managing-repositories/deleting-a-repository).
