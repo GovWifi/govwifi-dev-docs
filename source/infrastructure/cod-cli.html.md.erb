@@ -39,12 +39,13 @@ You can [create the secret following these instructions](https://docs.github.com
 ## Homebrew 
 Homebrew is a tool for macOS and Linux that helps you easily install and manage software from the terminal. It handles dependencies for you. Below is a diagram showing how homebrew works with the cod-cli
 
-<img src="/images/govwifi_homebrew_cli" alt="Diagram showing the flow of the cod-cli installation process" width="800"/>
+<img src="/images/govwifi_homebrew_cli.png" alt="Diagram showing the flow of the cod-cli installation process" width="800"/>
 
-Exaplainaiton of the diagram steps:
+Explanation of the diagram steps:
+
 1. Running the `brew install` command on your local machine downloads and installs the cod-cli application from the govwifi/cod homebrew tap. Homebrew taps are created simply by making a github repository called "homebrew" followed by the name of your custom homebrew application (in our case homebrew-cod). The `brew` command goes first to the `https://github.com/GovWifi/homebrew-cod` github repo and looks for a directory named "Formula". Homebrew will follow the instructions in the [formula file](https://github.com/GovWifi/homebrew-cod/blob/master/Formula/cod-cli.rb) to download and install the application and it's dependencies.
-2. The instructions in [Formula/cod-cli.rb](https://github.com/GovWifi/homebrew-cod/blob/master/Formula/cod-cli.rb) tell homebrew to check what operating system the user is running and then download the appropriate binary from [https://github.com/GovWifi/cod-cli/releases](https://github.com/GovWifi/cod-cli/releases).
-3. After the appropriate binary file for the user's system is downloaded, it is installed by homebrew along with it's dependencies. After this, the user will be able to run the cod-cli like any other command line application.
+1. The instructions in [Formula/cod-cli.rb](https://github.com/GovWifi/homebrew-cod/blob/master/Formula/cod-cli.rb) tell homebrew to check what operating system the user is running and then download the appropriate binary from [https://github.com/GovWifi/cod-cli/releases](https://github.com/GovWifi/cod-cli/releases).
+1. After the appropriate binary file for the user's system is downloaded, it is installed by homebrew along with it's dependencies. After this, the user will be able to run the cod-cli like any other command line application.
 
 A user can also download a binary directly from the cod-cli repo, and install it using another method of their choosing should they wish to.
 
