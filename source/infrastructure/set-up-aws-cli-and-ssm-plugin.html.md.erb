@@ -1,7 +1,7 @@
 ---
 title: Access the AWS CLI and SSM plugin
 weight: 20
-last_reviewed_on: "2024-08-21"
+last_reviewed_on: "2025-04-25"
 review_in: 6 months
 ---
 
@@ -17,7 +17,7 @@ Go to Systems Manager, under 'Node Management' on the left menu select 'Session 
 Press the Orange 'start session' button, the next screen should show a list of instances eg
 ```
 Alpaca Grafana-Server
-Alpaca Bastion - backend 
+Alpaca Bastion - backend
 Alpaca Prometheus-Server
 ```
 Select the radio button next to the instance needed, then click the  'start session' button
@@ -32,7 +32,7 @@ gds aws govwifi-development -- aws ssm start-session --target <EC2 instance Id>
 
 # SSH over SSM
 
-To do this, the hosts file will need to be setup, SSH keys downloaded.
+If you prefer the SSH interface, this can be configured by updating the config file in ./ssh and downloading the SSH keys (if not done so already).
 
 For instructions on how to setup the hosts file and obtain the keys, decrypt and read the instructions from the build repo.
 ```sh
@@ -40,7 +40,7 @@ PASSWORD_STORE_DIR=<path_to_password_store_dir> pass show ssh/instructions.txt
 ```
 
 # SCP over SSM
-Once the hosts file has been configured and can successfully SSH into the instance, then to upload and download file via SCP do this.
+Once the ./ssh/config file has been configured and you can successfully 'SSH' into the instance, then use the following to upload and download files via SCP.
 ### Upload
 ```
 scp ./<file-to-upload> bastion.dev.govwifi:<path-from-root>
