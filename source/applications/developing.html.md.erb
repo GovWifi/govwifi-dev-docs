@@ -1,7 +1,7 @@
 ---
 title: Developing applications
 weight: 10
-last_reviewed_on: "2024-07-27"
+last_reviewed_on: "2025-02-13"
 review_in: 6 months
 ---
 
@@ -12,6 +12,8 @@ GovWifi applications are written in [Ruby](https://www.ruby-lang.org/en/) using 
 To get started you'll need Ruby installed on your system. We recommend using a Ruby version manager like [rbenv](https://github.com/rbenv/rbenv) which will allow you to install the correct version of Ruby for GovWifi projects.
 
 We also recommend using the Terraform version manager [tfenv](https://github.com/tfutils/tfenv) to ensure we work with the same Terraform version.
+
+If you are working on a Mac you can install both using [Homebrew]().
 
 ## Building a development / test environment
 
@@ -46,7 +48,7 @@ Pull requests are linted and tests are run on via GitHub Actions, the resulting 
 
 ## Merging and deploying changes
 
-Once approved and merged your PR is automatically built and deployed to our staging environment where you can perform further acceptance testing and smoke testing. After that, deploying to production is a manual step in AWS Codepipeline.
+Once approved and merged your PR is automatically built and deployed to our development environment where you can perform further acceptance testing and [smoke testing](https://github.com/GovWifi/govwifi-smoke-tests). After that, deploying to production is a manual step in AWS Codepipeline.
 
 Our pipelines include a step to force an update to the ECS tasks which are configured to use the latest image pushed to ECR.
 

@@ -1,26 +1,13 @@
 ---
 title: Continuous Delivery
 weight: 70
-last_reviewed_on: "2024-07-19"
+last_reviewed_on: "2025-01-23"
 review_in: 6 months
 ---
 
 # Continuous Delivery
 
-GovWifi uses [AWS CodeBuild](https://aws.amazon.com/codebuild/) and [AWS CodePipeline](https://aws.amazon.com/codepipeline/) for its continuous delivery.
-
-## GovWifi CI/CD history
-
-Previously, the team was part of a multi-tenanted Concourse, known as Big Concourse, maintained by the GDS Automate team.
-Big Concourse was decommissioned on 15 December, 2021.
-
-The team migrated to a single-tenanted Concourse, known as GovWifi Concourse, maintained by the GovWifi team and based
-on the [`big-little-concourse`](https://github.com/alphagov/big-little-concourse-deployment) repo developed by the
-Platform as a Service (PaaS) team.
-
-Over the course of 2022 the team migrated to AWS CodePipeline & CodeBuild to align with Cabinet Office Digital tooling.
-
-Currently, GovWifi CI / CD exists in Github Actions for Docs repositories and AWS CodePipeline & CodeBuild for AWS hosted services.
+GovWifi CI / CD exists in Github Actions for Documentation repositories and [CodePipeline](https://aws.amazon.com/codepipeline/) & [CodeBuild](https://aws.amazon.com/codebuild/) for AWS hosted services.
 
 ## GovWifi CodePipeline & CodeBuild
 
@@ -58,3 +45,14 @@ GovWifi CodePipeline & CodeBuild use built-in AWS monitoring for general observa
 You must be on the VPN and have access to the AWS console to access the monitoring.
 
 Log in as the `govwifi-tools` user and navigate to AWS CloudWatch to view metrics about the deploy process and pipelines.
+
+## GovWifi CI/CD history
+
+Previously, the team was part of a multi-tenanted Concourse, known as Big Concourse, maintained by the GDS Automate team.
+Big Concourse was decommissioned on 15 December, 2021.
+
+The team migrated to a single-tenanted Concourse, known as GovWifi Concourse, maintained by the GovWifi team and based
+on the [`big-little-concourse`](https://github.com/alphagov/big-little-concourse-deployment) repo developed by the
+Platform as a Service (PaaS) team.
+
+Over the course of 2022 the team migrated to AWS CodePipeline & CodeBuild to align with Cabinet Office Digital tooling.

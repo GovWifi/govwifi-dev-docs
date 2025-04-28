@@ -1,7 +1,7 @@
 ---
 title: GovWifi Certificates
 weight: 90
-last_reviewed_on: "2024-05-25"
+last_reviewed_on: "2025-01-09"
 review_in: 6 months
 ---
 
@@ -13,13 +13,13 @@ The actual rotation is handled by the SREs (Site Reliablity Engineers).
 
 # How To Purchase A New Certificate
 
-In depth information on how to purchase new certificates, generate keys and validate the certificate files can be found [here](https://docs.google.com/document/d/1lr3f1svljXxRNknoB_67WaItAmZJpj5Y2ao1Yw7wxxU/). The document contains sensitive information, so you will need to be a verfied member of GovWifi team in order to access it.
+In depth information on how to purchase new certificates, generate keys and validate the [certificate files can be found in this guide](https://docs.google.com/document/d/1lr3f1svljXxRNknoB_67WaItAmZJpj5Y2ao1Yw7wxxU/). The document contains sensitive information, so you will need to be a verfied member of GovWifi team in order to access it.
 
 # How To Rotate The Certificates On The Radius Servers
 
-You will need to renew the certificate with our provider (currently this is Digicert see the previous section for instructions on how to do this). Once you have the new certificate files [upload them to this location](https://github.com/alphagov/govwifi-build/tree/master/passwords/certs) under their appropriate environments. 
+You will need to renew the certificate with our provider (currently this is Digicert see the previous section for instructions on how to do this). Once you have the new certificate files [upload them to this location](https://github.com/GovWifi/govwifi-build/tree/master/passwords/certs) under their appropriate environments.
 
-To copy the new certificate files to the GovWifi Radius servers you will need to run the Codebuild "sync-certs" job the code for which is found here: https://github.com/alphagov/govwifi-terraform/tree/master/govwifi-sync-certs
+To copy the new certificate files to the GovWifi Radius servers you will need to run the [Codebuild "sync-certs" job]( https://github.com/GovWifi/govwifi-terraform/tree/master/govwifi-sync-certs)
 
 The job takes the encrypted certificate files which are currently stored [here](https://github.com/alphagov/govwifi-build/tree/master/passwords/certs) and copies them to an S3 bucket starting with the prefix "frontend-cert-". When the Radius ECS tasks start up, they copy the certificate files directly from S3.
 
@@ -27,15 +27,15 @@ To run the sync certs job follow the instructions below:
 
 1. Log into the AWS account that contains the Radius servers that you are updating.
 2. Ensure you are either in the London (eu-west-2) or Ireland (eu-west-1) regions.
-3. Click [this link](https://eu-west-2.console.aws.amazon.com/codesuite/codebuild/projects?) to take you to the "Codebuild" section. 
+3. Click [this link](https://eu-west-2.console.aws.amazon.com/codesuite/codebuild/projects?) to take you to the "Codebuild" section.
 4. Search for the term "sync-certs" under "Build projects" and select the "govwifi-codebuild-sync-certs" project.
 5. Click the "Start Build" button. <a href="../images/start_build.png" ><img src="/images/start_build.png" alt="start_build"></a>
-6. Wait for the job to finish running. 
+6. Wait for the job to finish running.
 7. After it succeeds, restart the Radius severs in that region so they can pick up the newly uploaded certificate.
 8. Run the smoke-tests (full instructions on how to do this can be found [here] (https://docs.google.com/document/d/1RHNkGxJLr4BPPUlFgqDzCF6mSOXK0Kj2Yfb-GHXXNIA/edit) )
 9. Repeat this process in the other region, if you wish to release the new certificates there.
 
-A separate sync-cert job exists for our two GovWifi regions (eu-west-1 and eu-west-2). This allows us to test the effects of a certificate change in one region only, and is very useful for network administrations when they are testing their configurations. 
+A separate sync-cert job exists for our two GovWifi regions (eu-west-1 and eu-west-2). This allows us to test the effects of a certificate change in one region only, and is very useful for network administrations when they are testing their configurations.
 
 ## Update the product pages
 
