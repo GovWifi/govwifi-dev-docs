@@ -1,7 +1,7 @@
 ---
 title: Developing applications
 weight: 10
-last_reviewed_on: "2025-02-13"
+last_reviewed_on: "2025-05-13"
 review_in: 6 months
 ---
 
@@ -20,6 +20,19 @@ If you are working on a Mac you can install both using [Homebrew]().
 Each GovWifi application Github repository contains a [README](https://github.com/alphagov/govwifi-admin/blob/master/README.md) detailing how to build a development environment for running tests and making local changes.
 
 Most of the projects use a combination of [Make](https://www.gnu.org/software/make/), [Docker](https://www.docker.com/) and [docker-compose](https://docs.docker.com/compose/) to create the necessary containers and seed data for a local development environment.
+
+### Setting your AWS credentials as environment variables
+
+If you need to connect to AWS to test a part of your code, you can generate temporary credentials using either the [gds-cli](https://github.com/alphagov/gds-cli) or the [cod-cli](https://github.com/GovWifi/cod-cli) command
+
+To generate temporary AWS credentials:
+`cod aws govwifi-development -e`
+
+#### Testing applications whilst connecting to the AWS development environment
+
+To generate AWS temporary credentials and pass them to a docker container:
+`cod aws govwifi-development -e -- docker exec -it name-of-mycontainer /bin/sh`
+
 
 ## Bug and feature workflow
 
