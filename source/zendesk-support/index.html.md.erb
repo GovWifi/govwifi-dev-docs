@@ -1,7 +1,7 @@
 ---
 title: Zendesk
 weight: 9
-last_reviewed_on: "2025-04-04"
+last_reviewed_on: "2025-05-15"
 review_in: 6 months
 ---
 
@@ -127,3 +127,7 @@ If they continue to report issues, use the ["Questions for organisations facing 
 The more we know about the issue the better able we are to investigate.
 
 If the organisation is experiencing an incident, regardless of whether the root cause is GovWifi or not, we recommend following the steps outlined in ["Helping other organisation incident management teams with their incidents"](https://docs.google.com/document/d/1eO6eNtks-k3rW4KWXIMctlVHV5vqD8hN5SUM_jO4biM/).
+
+## In the logs on the Admin Portal, some Username or ID fields are blank, but show a Status of successful. Why is this?
+
+Blank username and ID fields indicate that users on your networks are authenticating via certificate based authentication (EAP-TLS), versus EAP-PEAP (username/passwords).  Users can do this even though your specific organisation doesn't have CBA enabled in the Admin Portal. This is part of the service, which allows users to roam regardless of their authentication method.
