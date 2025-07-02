@@ -28,7 +28,7 @@ For subsequent logins, when they have successfully entered the correct code the 
 
 ## Configuration options for 2FA
 
-The `two_factor_authentication` gem comes with a number of configuration options which can be found in [`config/initializers/devise.rb`](https://github.com/alphagov/govwifi-admin/blob/master/config/initializers/devise.rb).
+The `two_factor_authentication` gem comes with a number of configuration options which can be found in [`config/initializers/devise.rb`](https://github.com/GovWifi/govwifi-admin/blob/master/config/initializers/devise.rb).
 
 ```
 config.max_login_attempts = 3  # Maximum second factor attempts count.
@@ -40,11 +40,11 @@ config.second_factor_resource_id = 'id' # Field or method name used to set value
 config.delete_cookie_on_logout = false # Delete cookie when user signs out, to force 2fA again on login
 ```
 
-[`OTP_SECRET_ENCRYPTION_KEY` is configured via Terraform](https://github.com/alphagov/govwifi-terraform/commit/11a21b03915a6977e6bc10217513005f05ea7576) and different between staging and production environments, which means that different TOTP codes will be generated between environments.
+[`OTP_SECRET_ENCRYPTION_KEY` is configured via Terraform](https://github.com/GovWifi/govwifi-terraform/commit/11a21b03915a6977e6bc10217513005f05ea7576) and different between staging and production environments, which means that different TOTP codes will be generated between environments.
 
 ## Configuring how 2FA is enforced
 
-The `two_factor_authentication` gem will enforce 2FA for all users by default. We control how 2FA is applied via the [`need_two_factor_authentication?` method on the User model](https://github.com/alphagov/govwifi-admin/blob/master/app/models/user.rb#L54).
+The `two_factor_authentication` gem will enforce 2FA for all users by default. We control how 2FA is applied via the [`need_two_factor_authentication?` method on the User model](https://github.com/GovWifi/govwifi-admin/blob/master/app/models/user.rb#L54).
 With this method we can include or exclude users from other organisations, it's also possible to configure whether 2FA is necessary in specific environments.
 
 ## Reset 2FA
