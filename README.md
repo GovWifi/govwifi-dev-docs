@@ -13,7 +13,7 @@ You’re welcome to use the template even if your service isn’t considered par
 
 ## Before you start
 
-Follow the [Get started guide for Tech docs](https://tdt-documentation.london.cloudapps.digital/create_project/get_started/#get-started)
+Follow the [Get started guide for Tech docs][tdt-docs]
 
 ## Making changes
 
@@ -25,9 +25,9 @@ You can add content by editing the `.html.md.erb` files. These files support con
 - HTML
 - Ruby
 
-👉 You can use Markdown and HTML to [generate different content types][example-content] and [Ruby partials to manage content][partials].
+👉 You can use Markdown and HTML to [generate different content types] and [Ruby partials to manage content].
 
-👉 Learn more about [producing more complex page structures][multipage] for your website.
+👉 Learn more about [producing more complex page structures][tdt-docs] for your website.
 
 ## Preview your changes locally
 
@@ -64,12 +64,6 @@ Run `bundle update` to make sure you're using the most recent Ruby gem versions.
 
 Run `bundle exec middleman build --verbose` to get detailed error messages to help with finding the problem.
 
-## CI / CD
-
-[You can find the pipeline docs hhere](https://cd.gds-reliability.engineering/teams/govwifi/pipelines/dev-docs-deploy). It self updates when you merge any changes.
-
-[Follow this link to set up variables](https://cd.gds-reliability.engineering/teams/govwifi/pipelines/info/jobs/show-available-pipeline-variables/builds/14).
-
 ## How to contribute
 
 1. Fork the project (or clone for internal contributors)
@@ -88,11 +82,6 @@ The documentation is [© Crown copyright][copyright] and available under the ter
 [copyright]: http://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/
 [ogl]: http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
 [mmt]: https://middlemanapp.com/advanced/project_templates/
-[tdt-docs]: https://tdt-documentation.london.cloudapps.digital
-[config]: https://tdt-documentation.london.cloudapps.digital/configuration-options.html#configuration-options
-[frontmatter]: https://tdt-documentation.london.cloudapps.digital/frontmatter.html#frontmatter
-[multipage]: https://tdt-documentation.london.cloudapps.digital/multipage.html#build-a-multipage-site
-[example-content]: https://tdt-documentation.london.cloudapps.digital/content.html#content-examples
-[partials]: https://tdt-documentation.london.cloudapps.digital/single_page.html#add-partial-lines
+[tdt-docs]: https://github.com/alphagov/tdt-documentation
 [gem]: https://github.com/alphagov/tech-docs-gem
 [template]: https://github.com/alphagov/tech-docs-template
