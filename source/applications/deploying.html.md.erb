@@ -11,7 +11,7 @@ Deploying 9 systems out at the same time can be a non-trivial task. This should 
 
 ## AWS Codepipeline
 
-Deploying GovWifi is achieved via AWS Codepipeline and Codebuild. The code for this is found in the [govwifi-deploy module of the govwifi-terraform repo](https://github.com/alphagov/govwifi-terraform).
+Deploying GovWifi is achieved via AWS Codepipeline and Codebuild. The code for this is found in the [govwifi-deploy module of the govwifi-terraform repo](https://github.com/GovWifi/govwifi-terraform).
 
 ## Core services
 
@@ -32,7 +32,7 @@ Instructions for deploying the Frontend RADIUS service can be found [here](https
 The [Dev Docs][dev-docs-repo], [Tech Docs][tech-docs-repo], and [Product Page][product-page-repo]
 use a static site generator called [Middleman][middleman]. They are hosted on Github Pages.
 
-Each repo has it's own Github actions workflow which both tests and deploys to [Github Pages](https://docs.github.com/en/pages), when a PR is created it will run a test then when a PR is pushed to the `master` branch it will deploy to github pages. Example from our [dev-docs](https://github.com/alphagov/govwifi-dev-docs/blob/master/.github/workflows/deploy.yml).
+Each repo has it's own Github actions workflow which both tests and deploys to [Github Pages](https://docs.github.com/en/pages), when a PR is created it will run a test then when a PR is pushed to the `master` branch it will deploy to github pages. Example from our [dev-docs](https://github.com/GovWifi/govwifi-dev-docs/blob/master/.github/workflows/deploy.yml).
 
 #### Test your build locally
 
@@ -52,8 +52,8 @@ Each repo has it's own Github actions workflow which both tests and deploys to [
 3. Verify contents is deployed (you may need to open an incognito window to clear your cache).
 
 
-[dev-docs-repo]: https://github.com/alphagov/govwifi-dev-docs
-[tech-docs-repo]: https://github.com/alphagov/govwifi-tech-docs
-[product-page-repo]: https://github.com/alphagov/govwifi-product-page
+[dev-docs-repo]: https://github.com/GovWifi/govwifi-dev-docs
+[tech-docs-repo]: https://github.com/GovWifi/govwifi-tech-docs
+[product-page-repo]: https://github.com/GovWifi/govwifi-product-page
 [middleman]: https://middlemanapp.com/
-[smoke tests]: https://github.com/alphagov/govwifi-smoke-tests
+[smoke tests]: https://github.com/GovWifi/govwifi-smoke-tests

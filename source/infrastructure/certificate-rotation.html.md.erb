@@ -21,7 +21,7 @@ You will need to renew the certificate with our provider (currently this is Digi
 
 To copy the new certificate files to the GovWifi Radius servers you will need to run the [Codebuild "sync-certs" job]( https://github.com/GovWifi/govwifi-terraform/tree/master/govwifi-sync-certs)
 
-The job takes the encrypted certificate files which are currently stored [here](https://github.com/alphagov/govwifi-build/tree/master/passwords/certs) and copies them to an S3 bucket starting with the prefix "frontend-cert-". When the Radius ECS tasks start up, they copy the certificate files directly from S3.
+The job takes the encrypted certificate files which are currently stored [here](https://github.com/GovWifi/govwifi-build/tree/master/passwords/certs) and copies them to an S3 bucket starting with the prefix "frontend-cert-". When the Radius ECS tasks start up, they copy the certificate files directly from S3.
 
 To run the sync certs job follow the instructions below:
 
@@ -43,7 +43,7 @@ When the rotation is done, we need to update the following things.
 
 The [product pages](https://www.wifi.service.gov.uk/) mention the certificate GovWifi uses in text and screenshots.
 
-You can find and update this content in the [product pages repo](https://github.com/alphagov/govwifi-product-page) on Github.
+You can find and update this content in the [product pages repo](https://github.com/GovWifi/govwifi-product-page) on Github.
 
 ## Update the email template
 

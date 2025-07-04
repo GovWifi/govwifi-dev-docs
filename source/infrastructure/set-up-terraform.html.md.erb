@@ -7,13 +7,13 @@ review_in: 6 months
 
 # Set up Terraform
 
-GovWifi infrastructure is managed using [Terraform](https://www.terraform.io/) which is configured via [govwifi-terraform](https://github.com/alphagov/govwifi-terraform).
+GovWifi infrastructure is managed using [Terraform](https://www.terraform.io/) which is configured via [govwifi-terraform](https://github.com/GovWifi/govwifi-terraform).
 
 ### Prerequisites
 
-There are several prerequisites to running [govwifi-terraform](https://github.com/alphagov/govwifi-terraform) `make` commands successfully:
+There are several prerequisites to running [govwifi-terraform](https://github.com/GovWifi/govwifi-terraform) `make` commands successfully:
 
-- Your GPG key ID has been added to [govwifi-build](https://github.com/alphagov/govwifi-build/blob/master/passwords/.gpg-id) and secrets in this project have been re-encrypted.
+- Your GPG key ID has been added to [govwifi-build](https://github.com/GovWifi/govwifi-build/blob/master/passwords/.gpg-id) and secrets in this project have been re-encrypted.
 - You have an AWS IAM user with the ability to assume suitable roles.
 - Your AWS configuration contains an appropriate profile wth the suitable role.
   eg.
@@ -25,7 +25,7 @@ There are several prerequisites to running [govwifi-terraform](https://github.co
   mfa_serial=arn:aws:iam::1234567890:mfa/first-name.last-name@digital.cabinet-office.gov.uk
   ```
 
-- You've installed Terraform version declared in the [.terraform-version file](https://github.com/alphagov/govwifi-terraform/blob/master/.terraform-version). This can easily be installed alongside other versions using [tfenv](https://github.com/tfutils/tfenv).
+- You've installed Terraform version declared in the [.terraform-version file](https://github.com/GovWifi/govwifi-terraform/blob/master/.terraform-version). This can easily be installed alongside other versions using [tfenv](https://github.com/tfutils/tfenv).
 - (Optional) [aws-vault](https://github.com/99designs/aws-vault) is a useful AWS credential management tool. If you have other AWS credentials on you system this may help switch profiles.
 - (Optional) [gds-cli](https://github.com/alphagov/gds-cli) can be useful for automating some of the AWS credential management. Ask the team for help setting this up.
 
