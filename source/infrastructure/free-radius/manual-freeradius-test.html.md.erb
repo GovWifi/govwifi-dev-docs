@@ -1,13 +1,13 @@
 ---
 title: Test FreeRADIUS on the ECS task level
 weight: 70
-last_reviewed_on: "2025-06-30"
+last_reviewed_on: "2025-07-11"
 review_in: 6 months
 ---
 
 # Test FreeRADIUS on the ECS task level
 
-If you need to test the new FreeRADIUS ECS tasks manually (e.g. when the new Environmnet is created and Smoke tests are not deployed yet) you can use the steps listed below.
+If you need to test the new FreeRADIUS ECS tasks manually (e.g. when the new Environment is created and Smoke tests are not deployed yet) you can use the steps listed below.
 
 ## Prerequsites
 
@@ -15,11 +15,18 @@ We will be using the ECS Exec so please ensure your machine is configured in lin
 
 ## Get list of the FreeRADIUS tasks
 
+#### Using gds-cli
+
+This utility is being replaced with cod-cli (https://github.com/GovWifi/cod-cli).
+
+The remainder of this section is retained until everyone has migrated to cod-cli
+
 You can check the FreeRADIUS task ID directly from the AWS Console or use following `gds-cli` command:
 
 ```
 gds-cli aws <account-name> --region eu-west-2 -- aws ecs list-tasks --cluster frontend-fargate --service-name load-balanced-frontend
 ```
+Note: The team are migrating to cod-cli
 
 ## Connect to the FreeRADIUS tasks
 

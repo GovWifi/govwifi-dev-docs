@@ -47,6 +47,7 @@ GEM
     execjs (2.10.0)
     fast_blank (1.0.1)
     fastimage (2.3.1)
+    ffi (1.17.2-arm64-darwin)
     ffi (1.17.2-x86_64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
     ffi (1.17.2-x86_64-linux-musl)
@@ -147,6 +148,8 @@ GEM
     minitest (5.25.5)
     multi_json (1.15.0)
     mutex_m (0.2.0)
+    nokogiri (1.18.8-arm64-darwin)
+      racc (~> 1.4)
     nokogiri (1.18.8-x86_64-darwin)
       racc (~> 1.4)
     nokogiri (1.18.8-x86_64-linux-gnu)
@@ -181,6 +184,8 @@ GEM
     rexml (3.3.9)
     rouge (3.30.0)
     sass (3.4.25)
+    sass-embedded (1.81.1-arm64-darwin)
+      google-protobuf (~> 4.28)
     sass-embedded (1.81.1-x86_64-darwin)
       google-protobuf (~> 4.28)
     sass-embedded (1.81.1-x86_64-linux-gnu)
@@ -211,6 +216,7 @@ GEM
     webrick (1.9.1)
 
 PLATFORMS
+  arm64-darwin-24
   x86_64-darwin
   x86_64-linux
   x86_64-linux-gnu
