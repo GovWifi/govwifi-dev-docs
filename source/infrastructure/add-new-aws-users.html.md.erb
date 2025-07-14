@@ -1,11 +1,17 @@
 ---
 title: Add new AWS users
 weight: 10
-last_reviewed_on: "2025-06-30"
+last_reviewed_on: "2025-07-11"
 review_in: 6 months
 ---
 
 # Add new AWS users
+
+#### Using gds-cli
+
+This utility is being replaced with cod-cli (https://github.com/GovWifi/cod-cli).
+
+The remainder of this section is retained until everyone has migrated to cod-cli
 
 You can add new AWS users to the GovWifi AWS accounts by following the instructions below:
 
@@ -25,9 +31,11 @@ You can add new AWS users to the GovWifi AWS accounts by following the instructi
 
      b. Using the [gds-cli](https://github.com/alphagov/gds-cli), note: gds-cli may be aliased to 'gds', initialise Terraform if you have not done so previously:
 
+
      ```sh
      gds aws govwifi -- terraform init
      ```
+
 
      c. Run `plan` on the Terraform project to ensure the changes are what you intend to deploy:
 

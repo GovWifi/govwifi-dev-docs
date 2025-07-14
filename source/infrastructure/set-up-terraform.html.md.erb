@@ -1,7 +1,7 @@
 ---
 title: Set up Terraform
 weight: 60
-last_reviewed_on: "2025-06-30"
+last_reviewed_on: "2025-07-11"
 review_in: 6 months
 ---
 
@@ -33,7 +33,12 @@ There are several prerequisites to running [govwifi-terraform](https://github.co
 
 If you are running terraform commands for the first time you'll need to initialise terraform, this involves decrypting secrets and getting the backend state from S3. This is handled by one make command:
 
-**Note**: `env` refers to `staging | wifi | wifi-london`
+**Note**: `env` refers to `staging | wifi | wifi-london | govwifi-tools | alpaca`
+
+### gds-cli
+This utility is being replaced with cod-cli (https://github.com/GovWifi/cod-cli).
+
+The remainder of this section is retained until everyone has migrated to cod-cli
 
 ```
 aws-vault exec govwifi-staging -- make <env> init-backend
