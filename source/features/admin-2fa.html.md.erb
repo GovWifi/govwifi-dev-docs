@@ -9,8 +9,11 @@ review_in: 6 months
 
 2FA is mandatory for admin users when signing into GovWifi admin.
 
-We use the [`two_factor_authentication`](https://github.com/Houdini/two_factor_authentication) gem to integrate the Time-based One Time Password (TOTP) functionality
-with the existing Devise authentication modules.
+We use the [govwifi_two_factor_auth gem](https://github.com/GovWifi/govwifi_two_factor_auth) to integrate the Time-based One Time Password (TOTP) functionality with the existing Devise authentication modules.
+
+This gem is a fork of the [two_factor_authentication gem](https://github.com/Houdini/two_factor_authentication), which is no longer actively supported  and does not support the latest versions of Rails.
+
+We created and maintain our fork to ensure continued compatibility and security updates.
 
 ## 2FA set up
 
