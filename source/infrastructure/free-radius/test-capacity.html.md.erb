@@ -5,71 +5,30 @@ last_reviewed_on: "2025-01-23"
 review_in: 6 months
 ---
 
-# Capacity Testing
+# Capacity Testing for FreeRADIUS
 
-To simulate RADIUS connections you can use the [eapol_test](https://manpages.debian.org/testing/eapoltest/eapol_test.8.en.html) tool with GNU parallel. There are other RADIUS performance testing tools available, however they do not support TLS and EAP which is why we need to use eapol_test.
-
-As eapol_test only supports a singular test, we must utilise [GNU parallel](https://www.gnu.org/software/parallel/) to coordinate and record the running of many tests. Parallel can run tasks in parallel and sequentially.
-
-GNU parallel will run tasks in parallel up to the number of cores or CPUs available. As the RADIUS servers only have two cores it will only run two tests simultaneously.
+To simulate RADIUS authentication traffic, we use [eapol_test](https://manpages.debian.org/testing/eapoltest/eapol_test.8.en.html) in combination with [Apache JMeter](https://jmeter.apache.org/). While other RADIUS benchmarking tools exist, they typically do not support TLS and EAP, making eapol_test essential for accurate performance evaluation.
 
 ## Connection and setup
 
-Start by choosing a staging RADIUS server to connect to and then follow the [instructions](https://dev-docs.wifi.service.gov.uk/infrastructure/access-ecs-tasks.html) in order to access the ECS tasks (you must also be on the GDS VPN).
+Select a staging RADIUS server and follow the setup instructions in this [document](https://docs.google.com/document/d/1rmUy_3hJoCZMWhwSTTgfwPBVGSQl8ixpjNH0TubV7qQ/edit?tab=t.0#heading=h.4k2u1i8qcyyw) to configure the test environment.
 
-Run the following commands:
-
-```
-$ apk add parallel bash
-```
-
-This command adds GNU parallel and bash to the container.
-
-## Configure capacity test script
-
-This script simulates connecting to RADIUS using eapol_test and GNU parallel.
-
-Run this command from within the docker container.
-
-```
-$ cat << EOF > test_capacity.sh
-#!/usr/bin/env bash
-number="${1:-10}"
-export START=$(date)
-seq $number | parallel --no-notice --env HEALTH_CHECK_RADIUS_KEY --joblog log.txt eapol_test -r0 -t3 -c peap-mschapv2.conf -a 127.0.0.1 -s $HEALTH_CHECK_RADIUS_KEY
-sed -i  "s/$HEALTH_CHECK_RADIUS_KEY/<secret>/g" log.txt
-export END=$(date)
-echo "Start Time: $START"
-echo "  End Time: $END"
-EOF
-
-$ chmod +x test_capacity.sh
-```
-
-## Running capacity tests
-
-### To run 55 test logins:
-`./test_capacity.sh 55`
-
-### To run a single test login:
-`eapol_test -r0 -t3 -c peap-mschapv2.conf -a 127.0.0.1 -s $HEALTH_CHECK_RADIUS_KEY`
-
-or
-
-`./test_capacity.sh 1`
-
+Performance tests were conducted using custom EC2 instances in the GovWifi staging environment, targeting FreeRADIUS under two authentication methods: EAP-MSCHAPv2 and EAP-TLS.
 
 ## Results
-```
-/usr/src/healthcheck # ./test_capacity.sh 6
-/usr/src/healthcheck # cat log.txt
-Seq	Host	Starttime	JobRuntime	Send	Receive	Exitval	Signal	Command
-1	:	1599839779.690	     0.023	0	59014	0	0	eapol_test -r0 -t3 -c peap-mschapv2.conf -a 127.0.0.1 -s <secret> 1
-2	:	1599839779.692	     0.029	0	59014	0	0	eapol_test -r0 -t3 -c peap-mschapv2.conf -a 127.0.0.1 -s <secret> 2
-3	:	1599839779.719	     0.033	0	59014	0	0	eapol_test -r0 -t3 -c peap-mschapv2.conf -a 127.0.0.1 -s <secret> 3
-4	:	1599839779.728	     0.029	0	59014	0	0	eapol_test -r0 -t3 -c peap-mschapv2.conf -a 127.0.0.1 -s <secret> 4
-6	:	1599839779.763	     0.029	0	59014	0	0	eapol_test -r0 -t3 -c peap-mschapv2.conf -a 127.0.0.1 -s <secret> 6
-5	:	1599839779.757	     0.039	0	59014	0	0	eapol_test -r0 -t3 -c peap-mschapv2.conf -a 127.0.0.1 -s <secret> 5
-```
+### EAP-MSCHAPv2
 
-The "Exitval" field shows whether eapol_test returned 0 for success and !0 for a failures.
+* Sustained throughput: ~290 auth/s per RADIUS container
+* Scales linearly across multiple clients and server instances
+* CPU and memory usage remained stable
+
+### EAP-TLS
+
+* Default config (with verify directive):
+*	~23 auth/s, due to external OpenSSL verification
+*	Spawns separate process per auth; unsustainable at scale
+*	Optimised config (internal chain validation):
+*	~213 auth/s
+*	Uses X509_V_FLAG_PARTIAL_CHAIN and removes verify
+*	CPU becomes primary bottleneck (single-threaded processing)
+
