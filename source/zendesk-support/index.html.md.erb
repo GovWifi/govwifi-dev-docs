@@ -57,14 +57,21 @@ If you’re not sure:
 2. Edit the macro - there are 3 possible responses depending on whether the organisation is public sector or not. You need to send the part that asks for more information.
 3. If the person responds and it’s still unclear, copy in the service owner who will take it from there.
 
-## Can GovWifi be deployed in privately owned buildings who are offering publicly funded services?
+## Can GovWifi be deployed in privately owned buildings?
 
-Yes, GovWifi can be deployed in such locations, provided the following criteria are met:
+If network administrators ask if they can broadcast the GovWifi SSID in privately owned buildings being used for publicly funded services—such as NHS social care facilities or temporary government-related events in private venues—the answer is yes. GovWifi can be deployed in such locations, provided the following criteria are met:
+
 
 - The building or location is supporting a service that’s commissioned by a publicly funded organisation (for example, NHS, Local Authority, or Central Government).
 - Existing IP addresses (locations) must be incorporated from an established account.
 - Suppliers must not be granted admin user access
 - The account holders inform the GovWifi team of the address where GW will be broadcasted and duration of the contract with supplier
+
+Ensure the request relates to broadcasting GovWifi in a privately owned building that is being used for publicly funded services (e.g., NHS social care facility, government event in a private venue).
+Gather any missing information if the context is not clear from the initial request.
+If permitted: Outline the requirements or processes the requester needs to follow.
+If not permitted: Explain the reasons and offer alternative options if relevant.
+If there is uncertainty or the case is unusual, escalate the request to the service/product manager for further advice.
 
 ## I’m having problems using the internet once connected
 
@@ -85,22 +92,14 @@ We have either the email address or phone number of all users with GovWifi accou
 
 Before you can provide user information to an organisation:
 
-1. Go to the [Super admins site](https://admin.wifi.service.gov.uk/users/sign_in).
-2. Go to the 'Team members' section and check that the request is coming from an admin user at that organisation.
+1. Go to the [Super admins site](https://admin.wifi.service.gov.uk/super_admin/change_organisation).
+2. Go to the 'Team members' section and check that the request is coming from an admin user at that organisation. Then ‘assume membership’ of requesting org and check within their ‘settings’ for a signed MoU
 3. Go to the ‘Organisations’ section and search the organisation name.
 4. You’ll see a section called ‘MOU’ which will show whether the organisation has signed the Memorandum of Understanding (MOU). The MOU sets out the terms that we share personal data under.
 
 If the organisation has not signed the MOU, go to Zendesk and send the macro response ‘GovWifi - admin user - asking for info about an end user - MOU not signed’. Escalate to the service owner if the organisation has any questions about this.
 
 If it has signed the MOU, you can send them the information.
-
-### How to find the information
-
-User information is stored in a database. Only developers can access it.
-
-If you’re not a developer, ask one of them to get the information for you. It usually takes a couple of days, as it takes a while and has to be prioritised around other work.
-
-To send them the information, use the Zendesk macro 'GovWifi - admin user - MOU signed'. Some organisations are not aware that end users can sign up by text message, so explain this if you're sending them a phone number.
 
 ## Can you block a user on our network?
 
@@ -131,3 +130,21 @@ If the organisation is experiencing an incident, regardless of whether the root 
 ## In the logs on the Admin Portal, some Username or ID fields are blank, but show a Status of successful. Why is this?
 
 Blank username and ID fields indicate that users on your networks are authenticating via certificate based authentication (EAP-TLS), versus EAP-PEAP (username/passwords).  Users can do this even though your specific organisation doesn't have CBA enabled in the Admin Portal. This is part of the service, which allows users to roam regardless of their authentication method.
+
+## Sharing network admin contact details when requested
+
+Sometimes, end users or network admins need to contact the team responsible for a Govwifi account but do not have the right contact details. In these cases, we can share the service email addresses of the relevant network admins to help them get in touch.
+
+1. End user cannot find support contact details for their building
+   If an end user contacts us because they can’t find who to speak to about connecting to GovWifi in their building, provide them with the service email address for the network admin team responsible for that location.
+   Check which network admin team manages the account for the building.
+   Reply to the end user and share the relevant service email address so they can contact the admin team directly.
+2.  Network admins need to contact admins for an existing Govwifi account
+    If a network admin is trying to join or merge with another Govwifi account but doesn’t know who manages it, you can share the service email address of the admin team for that account.
+    Identify the existing Govwifi account and confirm the associated admin teams.
+    Share the appropriate service email address so they can discuss merging accounts or combining admin access.
+    Always:
+    Only share service (not personal) email addresses.
+    Remind users not to share these contact details publicly.
+
+
