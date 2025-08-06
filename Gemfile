@@ -9,7 +9,7 @@ gem 'wdm', '~> 0.1.1', platforms: [:mswin, :mingw]
 gem 'tzinfo-data', platforms: [:mswin, :mingw, :jruby]
 
 # Include the tech docs gem
-gem 'govuk_tech_docs', '~> 5.0.2'
+gem 'govuk_tech_docs', '~> 5.1.0'
 
 # Middleman Gems
 # Pinned to 4.5.1 due to this bug https://github.com/middleman/middleman/issues/2818
