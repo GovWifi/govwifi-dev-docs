@@ -19,6 +19,9 @@ In depth information on how to purchase new certificates, generate keys and vali
 
 You will need to renew the certificate with our provider (currently this is Digicert see the previous section for instructions on how to do this). Once you have the new certificate files [upload them to this location](https://github.com/GovWifi/govwifi-build/tree/master/passwords/certs) under their appropriate environments.
 
+Triple the capacity of the RADIUS servers in production immediately before certificate rotation and for 24 hours after.
+Certificate rotation can cause an increased load on the RADIUS servers. To combat this we increase the capacity of the radius servers temporarily. This is because during this time,  RADIUS sessions are often left open for a longer period whilst the servers wait for users to accept the new certificate, which increases the load on server resources.
+
 To copy the new certificate files to the GovWifi Radius servers you will need to run the [Codebuild "sync-certs" job]( https://github.com/GovWifi/govwifi-terraform/tree/master/govwifi-sync-certs)
 
 The job takes the encrypted certificate files which are currently stored [here](https://github.com/GovWifi/govwifi-build/tree/master/passwords/certs) and copies them to an S3 bucket starting with the prefix "frontend-cert-". When the Radius ECS tasks start up, they copy the certificate files directly from S3.
@@ -31,7 +34,7 @@ To run the sync certs job follow the instructions below:
 4. Search for the term "sync-certs" under "Build projects" and select the "govwifi-codebuild-sync-certs" project.
 5. Click the "Start Build" button. <a href="../images/start_build.png" ><img src="/images/start_build.png" alt="start_build"></a>
 6. Wait for the job to finish running.
-7. After it succeeds, restart the Radius severs in that region so they can pick up the newly uploaded certificate.
+7. After it succeeds, restart the Radius servers in that region so they can pick up the newly uploaded certificate.
 8. Run the smoke-tests (full instructions on how to do this can be found [here] (https://docs.google.com/document/d/1RHNkGxJLr4BPPUlFgqDzCF6mSOXK0Kj2Yfb-GHXXNIA/edit) )
 9. Repeat this process in the other region, if you wish to release the new certificates there.
 
