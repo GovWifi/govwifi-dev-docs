@@ -1,8 +1,8 @@
 ---
 title: Access the AWS console
 weight: 20
-last_reviewed_on: "2025-08-07"
-review_in: 6 months
+last_reviewed_on: "2025-08-08"
+review_in: 12 months
 ---
 
 # Access the AWS console
@@ -15,15 +15,15 @@ Staging and Production are hosted in different AWS accounts.
 
 Ask the reliability engineers for the GovWifi account IDs. AWS roles are in the form `firstname.lastname-admin` or `firstname.lastname-readonly`.
 
-#### Using gds-cli
+#### Using cod-cli
 
 This utility is being replaced with cod-cli (https://github.com/GovWifi/cod-cli).
 
 The remainder of this section is retained until everyone has migrated to cod-cli
 
-You can also use the [`gds-cli`](https://github.com/alphagov/gds-cli) to access the GovWifi AWS console.
+You can also use the [`cod-cli`](https://github.com/govwifi/cod-cli) to access the GovWifi AWS console.
 
-Review the [configuration instructions](https://github.com/alphagov/gds-cli#configuration) on the `gds-cli` README to set it up. Note: gds-cli may be aliased to gds. [Indepth guidance on setting up the gds-cli can be found on GDS's help pages](https://gds-way.digital.cabinet-office.gov.uk/manuals/working-with-aws-accounts.html#installing-gds-cli).
+Review the [configuration instructions](https://github.com/govwifi/cod-cli#configuration) on the `gds-cli` README to set it up. Note: gds-cli may be aliased to gds. [Indepth guidance on setting up the gds-cli can be found on GDS's help pages](https://gds-way.digital.cabinet-office.gov.uk/manuals/working-with-aws-accounts.html#installing-gds-cli).
 
 Once the `gds-cli` is set up, run the following command from anywhere in your terminal to login as `read-only` to Production:
 
@@ -67,3 +67,17 @@ You can login as `admin` to Recovery by running the following command:
 ```
 $ gds aws govwifi-recovery -l
 ```
+## Extend Session time
+By default the session time is 1 hour, then you get logged out, this can br frustrating, especially if you have several tabs open, thankfully there is a way to fix this.
+### From CLI
+`cod-cli aws govwifi-development -l --art 8h`
+### From Console.
+* Log into AWS console,
+* Switch to desired env, eg Dev, Staging, Prod.
+* Goto IAM
+* Goto Role
+* Search for your name.
+* Select your role.
+* Click Edit
+* Change Maximum session duration
+* Save
