@@ -1,0 +1,40 @@
+---
+title: FreeRADIUS ECS Task auto scaler
+weight: 30
+last_reviewed_on: "2025-08-08"
+review_in: 12 months
+---
+# FreeRADIUS ECS Task autoscaler
+## Background
+After an outage in May 2025, it was noticed that Radius had a hard limit of EAP Open Sessions, up until this point this hadn't caused us any problems, but when this limit was reached, the health checks stared to fail which then removed
+tasks from the load balancer.
+
+Also, helpfully, radius does not log the number of open sessions, so this isn't something that can be queried or set a metric for.
+
+## Mitigations
+The number of open session has been increased massively.
+
+Added a cloudwatch alarm that will trigger if the "too many sessions" error appears in the cloudwatch logs, achieved via a log metric, with a filter for this error message.
+
+This alarm will also trigger an auto scaler, that will increase tasks to the maximum set in the terraform config for that environment, look for `radius_task_count_`(min/max).
+
+## But where is the scale down policy?
+Well, good question,  we discovered, it was tricky to detect when it was 'safe' to scale back the radius tasks automatically.
+
+Setting this on the 'OK_ACTION' is not best practice, as the alarm could 'flip/flop' causing race conditions.
+
+Setting via an inverted cloudwatch alarm meant the alarm was alway in alert state.
+
+Using a schedule was wasteful, plus terraform (in 2025) has no way to reset the desired tasks, so 2 schedules would have been required.
+
+Considered a lambda to look at the last time the error appeared in the logs and wait a specific amount of time, then trigger the scale down, but this would be complex to build, integrate and maintain.
+
+So it was decided to do this manually via a codebuild job, reasons for this were:
+
+* On-demand: Only runs when it's decided it's safe to do so.
+* Controlled: investigate first, then scale down
+* Auditable: CodeBuild logs show exactly what happened
+* Flexible: Can easily change target capacity
+* Safe: Shows before/after status
+* Simple: Much simpler than Lambda in Terraform, easier to maintain.
+

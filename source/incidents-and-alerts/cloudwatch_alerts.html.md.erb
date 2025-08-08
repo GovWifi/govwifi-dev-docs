@@ -1,8 +1,8 @@
 ---
 title: CloudWatch Alarms
 weight: 10
-last_reviewed_on: "2025-08-07"
-review_in: 6 months
+last_reviewed_on: "2025-08-08"
+review_in: 12 months
 ---
 
 # CloudWatch Alarms
@@ -24,6 +24,10 @@ These are critical alarms and are [detailed on the PagerDuty page](/incidents-an
 
 ### Radius Cannot Connect to API.
 This can occur if a Security Group has been miss configured, preventing Radius accessing the Authentication or logging API's, check CloudWatch logs. This is a filter on the Frontend cloudwatch group looking for messages containing "ERROR: Server returned no data",
+
+### EAP-too-many-open-sessions
+Radius has a limit of EAP Open sessions, this should now trigger the auto scaler to spin up new tasks, monitor as this indicates increase in traffic or a radius problem.
+If it is agreed the problem has been dealt with, the tasks will have to be manually scaled back using the CodeBuild job.
 
 ### Bastion Status Alarm.
 this alarm will trigger if the EC2 instance responsible for the bastion is not responding, check the Cloudwatch logs, EC2 Instance Health, restart the instance if'it's failed.
