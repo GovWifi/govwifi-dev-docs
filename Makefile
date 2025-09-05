@@ -1,11 +1,11 @@
 build: stop
-	docker-compose build
+	docker compose build
 
 serve: build
-	docker-compose run --service-ports app bundle exec middleman server --watcher-force-polling
+	docker compose run --service-ports app bundle exec middleman server --watcher-force-polling
 
 stop:
-	docker-compose kill
-	docker-compose rm -f
+	docker compose kill
+	docker compose rm -f
 
 .PHONY: build deploy stop

@@ -9,11 +9,10 @@ gem 'wdm', '~> 0.1.1', platforms: [:mswin, :mingw]
 gem 'tzinfo-data', platforms: [:mswin, :mingw, :jruby]
 
 # Include the tech docs gem
-gem 'govuk_tech_docs', '~> 5.0.2'
+gem 'govuk_tech_docs', '~> 4.2.0'
 
 # Middleman Gems
-# Pinned to 4.5.1 due to this bug https://github.com/middleman/middleman/issues/2818
-gem 'middleman', '4.5.1'
+gem 'middleman', '~> 4.6.2'
 
 # required since ruby > 3.4
 gem 'base64'
@@ -21,3 +20,4 @@ gem 'benchmark'
 gem 'bigdecimal'
 gem 'mutex_m'
 gem 'rdoc'
+gem 'kramdown' ## replace redcarpet which breaks with middleman > 4.5.1
