@@ -21,3 +21,4 @@ gem 'bigdecimal'
 gem 'mutex_m'
 gem 'rdoc'
 gem 'kramdown' ## replace redcarpet which breaks with middleman > 4.5.1
+gem 'kramdown-parser-gfm' ## needed for github style markdown
