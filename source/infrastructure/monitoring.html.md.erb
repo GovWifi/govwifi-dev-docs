@@ -1,48 +1,106 @@
 ---
 title: Monitoring
 weight: 20
-last_reviewed_on: "2025-08-07"
+last_reviewed_on: "2025-10-04"
 review_in: 6 months
 ---
 
 # Monitoring
 
+GovWifi uses a number of monitoring tools and scheduled jobs to collect metrics, monitor service health, and generate usage reports.  
+This page describes how monitoring works across Grafana, Prometheus, Google Analytics, and the related Rake tasks.
+
 ## Grafana
 
-Grafana is an open source analytics and monitoring platform. We use it for monitoring the health of GovWifi in realtime.
+Grafana is an open-source analytics and monitoring platform used to monitor the health of GovWifi in real time.
 
-Every GovWifi environment has its own Grafana instance. Which runs on AWS EC2. This [Google Document contains in-depth information on the technical setup][Govwifi Grafana Setup Doc] (you must be a member of the Govwifi
-team to view this document).
+Every GovWifi environment has its own Grafana instance, running on AWS EC2.  
+This [Google Document contains in-depth information on the technical setup][Govwifi Grafana Setup Doc] (you must be a member of the GovWifi team to view this document).
 
-You can access the dashboard using the links below (you must be logged into the VPN and signed into the dashboard to do this):
+You can access the dashboards using the links below (VPN and dashboard access required):
 
 - [Production](https://grafana.wifi.service.gov.uk/)
 - [Staging](https://grafana.staging.wifi.service.gov.uk/)
 
 [GovWifi Grafana Setup Doc]: https://docs.google.com/document/d/1mmYZPagv0pPrs4f4iGANEoj5GTMisZU1RyN1qaP5dck/
 
-### Where The Data Comes From / Grafana Data Sources
+### Where the Data Comes From / Grafana Data Sources
 
-The data in our Grafana is primarily comes from Prometheus and Elasticsearch. Both of these services are hosted in AWS. Prometheus collects data relating to our Radius servers. For example how many authentication requests are happening over a given period. The fine grained data from Prometheus tends to be more useful to engineers, whilst the data from Elasticsearch provides a high level overview of how the system is being used. The Elasticsearch data is also used to generate [monthly reports that are sent to GPA](https://docs.google.com/document/d/1pwrHGLFBkeLOIk-yawjPrbZgQQdn76AwKFo3YCePN78/).
+The data in Grafana primarily comes from Prometheus and Elasticsearch, both hosted in AWS.
+
+- **Prometheus** collects data from the Radius servers (for example, authentication requests over time).  
+  This data is more fine-grained and typically used by engineers.
+- **Elasticsearch** provides higher-level usage insights and generates [monthly reports sent to GPA](https://docs.google.com/document/d/1pwrHGLFBkeLOIk-yawjPrbZgQQdn76AwKFo3YCePN78/).
 
 #### Elasticsearch
 
-The admin and logging-api have functions that collect and push a range of metrics (like active users in a specific time period) to our Elasticsearch cluster in AWS. This data is pulled from our databases at various intervals (hourly, daily, monthly etc) and sent to Elasticserch via an ECS scheduled job. These scheduled jobs run rake tasks that push the data to Elasticsearch at specified intervals. [This is an example of such a job in our terraform code](https://github.com/GovWifi/govwifi-terraform/blob/c40e0ef9167a234f2d0c0d5e0d2705aa4f88c9db/govwifi-api/logging-scheduled-tasks.tf#L137).
+The **admin** and **logging-api** applications collect and push a range of metrics (such as active users and completion rates) to our Elasticsearch cluster in AWS.  
+Data is pulled from databases at regular intervals (hourly, daily, monthly, etc.) and sent to Elasticsearch via ECS scheduled jobs.
+
+These scheduled jobs run Rake tasks that push data to Elasticsearch at specific intervals.  
+See [this example Terraform job](https://github.com/GovWifi/govwifi-terraform/blob/c40e0ef9167a234f2d0c0d5e0d2705aa4f88c9db/govwifi-api/logging-scheduled-tasks.tf#L137).
 
 The metrics are also backed up in an S3 bucket in each GovWifi environment. This is configured by the [govwifi-dashboard module in terraform](https://github.com/GovWifi/govwifi-terraform/blob/master/govwifi-dashboard/s3.tf). The diagram below shows the resources that Elasticsearch interacts with. [A scalable version is available in our team drive](https://app.diagrams.net/#G1-_q1WP4lg6Vp_Eof8lQfjb6hH1y3ksbY#%7B%22pageId%22%3A%22ZV0GcbZi5lNXhyqezGf6%22%7D):
 
 ![metrics]
 
-### Using Grafana Data To Generate Montly Reports
+### Using Grafana Data to Generate Monthly Reports
 
-The GovWifi team uses the metrics in Grafana to [generate monthly reports](https://docs.google.com/spreadsheets/d/1ucsIku1VRu7vVlOLrsWwYve1wm_4rXsbMprBSFcjeyY/). [In depth instructions on generating the monthly reports can be found in this document (you will need to be a member of the GovWifi team to see it).](https://docs.google.com/document/d/1pwrHGLFBkeLOIk-yawjPrbZgQQdn76AwKFo3YCePN78/)
+The GovWifi team uses Grafana metrics to [generate monthly reports](https://docs.google.com/spreadsheets/d/1ucsIku1VRu7vVlOLrsWwYve1wm_4rXsbMprBSFcjeyY/).  
+[Detailed instructions can be found here](https://docs.google.com/document/d/1pwrHGLFBkeLOIk-yawjPrbZgQQdn76AwKFo3YCePN78/) (GovWifi access required).
 
 ### Hosted on GOV.UK PaaS (Platform as a Service)
 
-Prior to November 2023 there was an additional Grafana which was hosted on GOV.UK PaaS. It was used for monitoring performance of [GovWifi Product Pages](https://www.wifi.service.gov.uk/) and [Tech Docs](https://docs.wifi.service.gov.uk/). This data is now collected by Google Analytics. The PaaS is scheduled to be decommissioned at the end of December 2023 and the Product Pages and Techdocs are now hosted on Github Pages.
+Prior to November 2023, an additional Grafana instance was hosted on GOV.UK PaaS.  
+It monitored performance of the [GovWifi Product Pages](https://www.wifi.service.gov.uk/) and [Tech Docs](https://docs.wifi.service.gov.uk/).  
+
+This data is now collected via Google Analytics. The PaaS was scheduled for decommissioning in December 2023, and the Product Pages and Tech Docs are now hosted on GitHub Pages.
 
 [GOV.UK PaaS]: https://docs.cloud.service.gov.uk/#gov-uk-platform-as-a-service
 [GovWifi dashboard]: https://grafana-paas.cloudapps.digital/d/KMxSG3DWk/govwifi
+
+## Rake Tasks
+
+A number of Rake tasks are used to collect and publish metrics that feed into Grafana dashboards and monthly reports.  
+These tasks run automatically as ECS scheduled jobs in AWS, but can also be triggered manually if needed.
+
+### Logging API Tasks
+
+The Logging API defines several tasks under the `Performance::Metrics` module.  
+Each task generates and uploads a specific set of metrics to S3 and Elasticsearch using the `Performance::Metrics::MetricSender` class.
+
+**Metrics collected**
+
+| Metric | Use Case Class | Destination |
+|---------|----------------|--------------|
+| active_users | `Performance::UseCase::ActiveUsers` | S3 / Elasticsearch |
+| completion_rate | `Performance::UseCase::CompletionRate` | S3 / Elasticsearch |
+| inactive_users | `Performance::UseCase::NewUsers` | S3 / Elasticsearch |
+| roaming_users | `Performance::UseCase::RoamingUsers` | S3 / Elasticsearch |
+| volumetrics | `Performance::UseCase::Volumetrics` | S3 / Elasticsearch |
+| user_devices | `Performance::UseCase::UserDevices` | S3 / Elasticsearch |
+
+These tasks are invoked by scheduled jobs defined in Terraform (see `logging-scheduled-tasks.tf`).  
+The metrics are visualised in Grafana and used in monthly reports.
+
+### Admin Application Tasks
+
+The **Admin** application defines a Rake namespace `opensearch` for publishing metrics to OpenSearch (previously Elasticsearch).
+
+**Task** 
+`rake opensearch:publish_metrics`
+
+**Purpose**  
+Collects usage data about organisations and locations, then writes the results to the `govwifi-metrics` index in OpenSearch.
+
+**Data collected**
+
+| Metric | Use Case Class | Description |
+|--------|----------------|-------------|
+| organisation_usage_stats | `UseCases::OrganisationUsage` | Usage per organisation |
+| new_organisations | `UseCases::NewOrganisations` | New organisations signing up |
+| new_locations | `UseCases::NewLocations` | Newly added locations |
+| new_cba_organisations | `UseCases::NewCbaOrganisations` | New CBA organisations added |
 
 ## Google Analytics
 
