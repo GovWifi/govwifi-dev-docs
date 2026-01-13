@@ -1,0 +1,45 @@
+---
+title: Major incident playbook
+weight: 45
+last_reviewed_on: "2026-01-12"
+review_in: 12 months
+---
+
+# Major incident playbook (Super Admin)
+
+## When to treat an issue as a major incident
+
+Treat an issue as a major incident when it affects multiple organisations, a large number of users, or has significant impact on service availability.
+Examples include widespread authentication failures, misconfigured IP ranges blocking access, or critical issues with the admin portals.
+
+## Initial checks in the Super Admin portal
+
+When a potential major incident is reported:
+
+- Confirm scope
+  - Use connection and troubleshooting views to see whether failures are across many organisations or limited to one.
+  - Check whether problems are linked to specific domains, sites or IP addresses.
+
+- Check recent changes
+  - Review the activity and change history around the time issues started, focusing on bulk or high‑impact changes.
+  - Look for recent organisation, email domain or IP changes that could explain failures.
+
+- Stabilise configuration
+  - If you identify a likely cause, consider rolling back or temporarily undoing the change while you investigate.
+  - Avoid making multiple unrelated changes which can make diagnosis harder.
+
+## Communication and escalation
+
+- Internal coordination
+  - Follow your team’s major incident process, assigning an incident manager, technical lead and comms lead.
+  - Keep brief time‑stamped notes of decisions and actions.
+
+- External updates
+  - Provide clear updates to affected organisations including what is known, what you are doing, and any temporary workarounds.
+  - Use agreed support channels and avoid sharing unnecessary personal data from logs or user details.
+
+## After the incident
+
+- Capture what happened, root cause and which portal changes were involved (for example, domain removal, IP edits, organisation changes).
+- Identify any process or guidance changes needed (for example, extra checks before bulk updates).
+- Update the Super Admin guide and related runbooks so future incidents can be handled more smoothly.
