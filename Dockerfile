@@ -1,4 +1,4 @@
-FROM ruby:4.0.1-alpine
+FROM ruby:3.4.8-alpine
 
 WORKDIR /usr/src/app
 
@@ -14,3 +14,4 @@ EXPOSE 4567
 EXPOSE 35729
 
 RUN bundle exec middleman build
+
