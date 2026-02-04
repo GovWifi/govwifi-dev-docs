@@ -1,7 +1,7 @@
 ---
 title: View CloudWatch logs
 weight: 20
-last_reviewed_on: "2025-08-07"
+last_reviewed_on: "2026-02-07"
 review_in: 6 months
 ---
 
@@ -62,19 +62,27 @@ The application log group naming is inconsistent. It roughly uses the following 
 
 |   Service/API  | Environment |                  Log group                 |
 |----------------|-------------|--------------------------------------------|
-| FreeRADIUS     | Staging     | `frontend`                                   |
+| FreeRADIUS     | Development | `frontend`                                   |
+|                | Staging     | `frontend`                                   |
 |                | Production  | `frontend`                                   |
-| Admin          | Staging     | `staging-admin-log-group`                    |
+| Admin          | Development | `development-admin-log-group`                |
+|                | Staging     | `staging-admin-log-group`                    |
 |                | Production  | `wifi-admin-log-group`                       |
-| Authentication | Staging     | `staging-authentication-api-docker-log-group` |
+| Authentication | Development | `development-authentication-api-docker-log-group` |
+|                | Staging     | `staging-authentication-api-docker-logs`      |
 |                | Production  | `wifi-authentication-api-docker-logs`         |
-| User Sign-up   | Staging     | `staging-user-signup-api-docker-log-group`   |
+| User Sign-up   | Development | `development-user-signup-api-docker-log-group`   |
+|                | Staging     | `staging-user-signup-api-docker-log-group`   |
 |                | Production  | `wifi-user-signup-api-docker-log-group`      |
-| Logging        | Staging     | `staging-logging-api-docker-log-group`       |
+|                | Production  | `wifi-user-signup-api-docker-log-group`      |
+| Logging        | Development | `development-logging-api-docker-log-group`       |
+|                | Staging     | `staging-logging-api-docker-log-group`          |
 |                | Production  | `wifi-logging-api-docker-log-group`          |
-| Grafana        | Staging     | `staging-grafana-log-group`                  |
+| Grafana        | Development | `development-grafana-log-group`                  |
+|                | Staging     | `staging-grafana-log-group`                     |
 |                | Production  | `wifi-grafana-log-group`                     |
-| Prometheus     | Staging     | `staging-prometheus-log-group`               |
+| Prometheus     | Development | `development-prometheus-log-group`               |
+|                | Staging     | `staging-prometheus-log-group`               |
 |                | Production  | `wifi-prometheus-log-group`                  |
 
 **Note**:
@@ -92,9 +100,22 @@ System logs for EC2 instances follow a separate pattern:
 
 |  EC2 instance  | Environment |                  Log group                 |
 |----------------|-------------|--------------------------------------------|
-| Bastion        | Staging     | `staging-bastion/var/log/*`                |
+| Bastion        | Development | `development-bastion/var/log/*`                   |
+|                | Staging     | `staging-bastion/var/log/*`                |
 |                | Production  | `wifi-bastion/var/log/*`                   |
-| Frontend ECS cluster | Staging | `staging/var/log/*`                      |
+| Frontend ECS cluster | Development | `development/var/log/*`                      |
+|                       | Staging | `staging/var/log/*`                      |
 |                | Production  | `wifi/var/log/*`                           |
 
 **Note**: The Frontend ECS clusters run on Fargate and follow this naming pattern: `/aws/ecs/containerinsights/frontend-fargate/*`
+
+
+### Log retention
+Log retention policies are set for each log group. The default retention period is 30 days, but some log groups may have different retention settings based on their importance and usage.
+For example, Frontend, Admin, Authentication, User Sign-up, and Logging API logs are retained for 90 days in cloudwatch, logs older than this are archived to S3 for 12 months.
+
+### Searching logs
+You can search logs using the CloudWatch Logs Insights feature, which allows you to run queries against your log data, for data less than 90 days old. For logs older than 90 days, you will need to access the archived logs by querying using the Athena service.
+For more information on using Athena to query archived logs, with some example queries, please refer to the [Log Management documentation](https://github.com/GovWifi/govwifi-terraform/blob/master/log-management/README.md).
+** Please note **
+To manage costs associated with using Athena, ensure that you limit your queries to specific date ranges and log groups. Avoid running broad queries that scan large amounts of data unnecessarily, queries over 10Gb in size will be terminated.
