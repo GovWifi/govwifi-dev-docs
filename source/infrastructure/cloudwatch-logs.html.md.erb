@@ -112,7 +112,7 @@ System logs for EC2 instances follow a separate pattern:
 
 ### Log retention
 Log retention policies are set for each log group. The default retention period is 30 days, but some log groups may have different retention settings based on their importance and usage.
-For example, Frontend, Admin, Authentication, User Sign-up, and Logging API logs are retained for 90 days in cloudwatch, logs older than this are archived to S3 for 12 months.
+For example, Frontend, Admin, Authentication, User Sign-up, and Logging API logs are retained for 90 days in cloudwatch, logs older than this are archived, via Kinases Firehose subscripts, to S3 for 12 months.
 
 ### Searching logs
 You can search logs using the CloudWatch Logs Insights feature, which allows you to run queries against your log data, for data less than 90 days old. For logs older than 90 days, you will need to access the archived logs by querying using the Athena service.
