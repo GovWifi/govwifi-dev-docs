@@ -21,6 +21,32 @@ Each GovWifi application Github repository contains a [README](https://github.co
 
 Most of the projects use a combination of [Make](https://www.gnu.org/software/make/), [Docker](https://www.docker.com/) and [docker-compose](https://docs.docker.com/compose/) to create the necessary containers and seed data for a local development environment.
 
+Development can be done using the [acceptance tests environment](https://github.com/GovWifi/govwifi-acceptance-tests). This approach has the following benefits:
+
+- Speed-up onboarding
+    - provides a local safe learning environment.
+
+- Allow development and test against all parts locally
+    - Speeds up delivery
+
+- Assurance that all parts still work.
+
+<%= link_to image_tag('/assets/acceptance-test-devenv/2026-02-09-developer-environment-overview.png', alt: 'Developer environment overview', width: '80%'), '/assets/acceptance-test-devenv/2026-02-09-developer-environment-overview.png' %>
+
+To learn more about the acceptance test developer environment and the wider system watch this video series:
+
+- [Part 01 - Introduction to the dev env](https://drive.google.com/file/d/1m6iio_RT9AqgUZD6w9ilOp9JlAfMupG6/view?usp=drive_link)
+- [Part 02 - Setting-up the dev env](https://drive.google.com/file/d/1kTGNQ0ljtbEXRI74PDnEgrI-2J15yAE6/view?usp=drive_link)
+- [Part 03 - User-Password journey](https://drive.google.com/file/d/1GWbFKs5mONRFVLc2yX--krXB3g0Odpjf/view?usp=drive_link)
+- [Part 04 - Certificate Based Authentication (CBA) journey](https://drive.google.com/file/d/1nD91WgIzLtQ6IBCz7jqe99M-orC_6hgG/view?usp=drive_link)
+- [Part 05 - Summary and good luck](https://drive.google.com/file/d/1DPovQQD6b-9sB5aVcnDUr88HApi26Jyv/view?usp=drive_link)
+
+
+Each of the application repositories are checked-out into a hidden folder in the acceptance-tests local directory. The hidden folders can be seen from the terminal with `ls -a`. On the Mac you can open the checkout folder with Finder. If you then press shift `⬆︎ + ⌘ + .` the hidden folders will be shown.
+
+You can work with this code or symlink code in a different location, and then branch and make changes.
+
+
 ### Setting your AWS credentials as environment variables
 
 #### Using `gds-cli`
