@@ -23,4 +23,5 @@
 Staticfile.auth
 .envrc
 .gems
+.vscode
 
