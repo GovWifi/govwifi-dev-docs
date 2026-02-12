@@ -21,3 +21,6 @@
 .DS_Store
 
 Staticfile.auth
+.envrc
+.gems
+
