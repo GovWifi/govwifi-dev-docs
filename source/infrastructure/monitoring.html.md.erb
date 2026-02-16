@@ -49,6 +49,45 @@ The metrics are also backed up in an S3 bucket in each GovWifi environment. This
 The GovWifi team uses Grafana metrics to [generate monthly reports](https://docs.google.com/spreadsheets/d/1ucsIku1VRu7vVlOLrsWwYve1wm_4rXsbMprBSFcjeyY/).  
 [Detailed instructions can be found here](https://docs.google.com/document/d/1pwrHGLFBkeLOIk-yawjPrbZgQQdn76AwKFo3YCePN78/) (GovWifi access required).
 
+### Using Grafana Data to Calculate Active Users
+
+GovWifi logging API calculates the Active Users metric for reporting (daily, weekly and monthly).
+It is implemented in the `Performance::Repository::Session` class in the `govwifi-logging-api` application and uses the sessions database to gauge user activity.
+
+The Active Users metric is calculated from the sessions table, which contains one row per authentication attempt. This `Sequel::Model(:sessions)` ties the repository directly to the sessions table.
+
+*An active user is defined as a unique user (identified by username) who has at least one qualifying session during the reporting month.*
+
+A qualifying session must have:
+- Occured within the calendar month (e.g. from 00:00 on the first day to 23:59:59 on the last day).
+- Be marked as successful (for example, success = 1).
+- Be associated with a valid identifier (e.g. a non‑null username).
+* This is a link to the code that defines the Active Users metric: [Active Users Code](https://github.com/GovWifi/govwifi-logging-api/blob/03bd7d2295264d53fb85befde6a280f096aaa2ee/lib/performance/repository/session.rb#L16C5-L23)
+
+
+#### Periods and reporting windows
+
+The [calculation for the reporting window](https://github.com/GovWifi/govwifi-logging-api/blob/03bd7d2295264d53fb85befde6a280f096aaa2ee/lib/performance/repository/session.rb#L18C15-L21C11) is parameterised by two inputs:
+
+- Period - SQL interval unit such as DAY, WEEK, or MONTH.
+
+- Date/Time - A timestamp that defines the end of the reporting window.
+
+The query always calculates activity over a single 1-period window ending at date - 1.
+
+Examples:
+- Daily Active Users (DAU)
+Period: DAY
+Date/ Time : chosen so that date - 1 corresponds to the day being reported.
+
+- Weekly Active Users (WAU)
+Period: WEEK
+Date/time: chosen so that date - 1 is the final day of the target week.
+
+- Monthly Active Users (MAU)
+Period: MONTH
+Date/time: chosen so that date - 1 is the final day of the target month.
+  
 ### Hosted on GOV.UK PaaS (Platform as a Service)
 
 Prior to November 2023, an additional Grafana instance was hosted on GOV.UK PaaS.  
