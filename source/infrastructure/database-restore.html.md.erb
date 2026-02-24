@@ -7,7 +7,7 @@ review_in: 6 months
 
 # Restoring Databases
 
-Note: gds-cli maybe installed and accessible via either gds-cli, gds or cod depending on your installation. gds is also an alias belonging to [github cli tools](https://github.com/alphagov/gds-cli). 
+Note: gds-cli maybe installed and accessible via either gds-cli, gds or cod depending on your installation. gds is also an alias belonging to [github cli tools](https://github.com/alphagov/gds-cli).
 
 A note on the Session database:
 In case of a [Business Continuity](https://dev-docs.wifi.service.gov.uk/incidents-and-alerts/bcp_and_dr.html#business-continuity-and-disaster-recovery-management) restore of the Production environment to a new AWS account, DO NOT restore the session database. The session database is only kept for analytical purposes and for admins to view logs. A restore of the session database takes over an hour and would delay our recovery time. If you do wish restore the Session database for analysis purposes, ensure that your Bastion server has at least 100GB volume provisioned and the Session database instance has 100GB of storage allocated.
@@ -58,7 +58,7 @@ scp govwifi-databasename-datetime.sql.gz.gpg bastion.staging.govwifi:/tmp
 ```
 
 **Login to the bastion server and decrypt the gpg file:**
-
+It will ask for a passphrase, which is the one you retrieved from the password store in the first step.
 ```
 cd /tmp
 gpg --output govwifi-backup-databasename.sql.gz --decrypt govwifi-backup-databasename.sql.gz.gpg
