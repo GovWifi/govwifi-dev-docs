@@ -1,21 +1,20 @@
 ---
 title: GovWifi Certificates
 weight: 90
-last_reviewed_on: "2025-08-07"
+last_reviewed_on: "2026-03-11"
 review_in: 6 months
 ---
 
 # GovWifi certificates
 
 We rotate the GovWifi certificate every year.
-
 The actual rotation is handled by the SREs (Site Reliablity Engineers).
 
-# How To Purchase A New Certificate
+##  How To Purchase A New Certificate
 
 In depth information on how to purchase new certificates, generate keys and validate the [certificate files can be found in this guide](https://docs.google.com/document/d/1lr3f1svljXxRNknoB_67WaItAmZJpj5Y2ao1Yw7wxxU/). The document contains sensitive information, so you will need to be a verfied member of GovWifi team in order to access it.
 
-# How To Rotate The Certificates On The Radius Servers
+##  How To Rotate The Certificates On The Radius Servers
 
 You will need to renew the certificate with our provider (currently this is Digicert see the previous section for instructions on how to do this). Once you have the new certificate files [upload them to this location](https://github.com/GovWifi/govwifi-build/tree/master/passwords/certs) under their appropriate environments.
 
@@ -35,7 +34,7 @@ To run the sync certs job follow the instructions below:
 5. Click the "Start Build" button. <a href="../images/start_build.png" ><img src="/images/start_build.png" alt="start_build"></a>
 6. Wait for the job to finish running.
 7. After it succeeds, restart the Radius servers in that region so they can pick up the newly uploaded certificate.
-8. Run the smoke-tests (full instructions on how to do this can be found [here] (https://docs.google.com/document/d/1RHNkGxJLr4BPPUlFgqDzCF6mSOXK0Kj2Yfb-GHXXNIA/edit) )
+8. Run the smoke-tests (full instructions on how to do this can be found [here](https://docs.google.com/document/d/1RHNkGxJLr4BPPUlFgqDzCF6mSOXK0Kj2Yfb-GHXXNIA/edit)
 9. Repeat this process in the other region, if you wish to release the new certificates there.
 
 A separate sync-cert job exists for our two GovWifi regions (eu-west-1 and eu-west-2). This allows us to test the effects of a certificate change in one region only, and is very useful for network administrations when they are testing their configurations.
