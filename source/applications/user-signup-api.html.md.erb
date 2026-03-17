@@ -1,0 +1,25 @@
+---
+title: User signup API
+weight: 15
+last_reviewed_on: "2026-03-13"
+review_in: 12 months
+---
+
+# User signup API
+
+The [user signup API](https://github.com/GovWifi/govwifi-user-signup-api) handles incoming sign-up texts and emails (with support from AWS). It is the service that creates GovWifi credentials for end users.
+
+## GDPR
+
+### Policies
+
+The following policies apply under GDPR:
+
+- **Sponsored users username/password reminder:** Not allowed after 90 days from initial registration or first usage. Reminders are only sent within the first 90 days.
+- **Sponsored users/accounts:** Deleted after 90 days of inactivity.
+
+### Inactive user deletion
+
+Any user who has not logged into GovWifi for more than 12 months is considered inactive. Inactive users and accounts are deleted according to our retention policy. 
+
+Sponsored users/accounts are deleted after 90 days of inactivity.
