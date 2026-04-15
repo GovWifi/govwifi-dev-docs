@@ -11,7 +11,7 @@ This section gives an overview of the GovWifi infrastructure. A diagram of our i
 
 ## Environments
 
-GovWifi has four environments in separate AWS accounts: Recovery, Development (called alpaca), Staging and Production.
+GovWifi has four environments in separate AWS accounts: Recovery, Development, Staging and Production.
 
 ## VPN
 
@@ -23,7 +23,7 @@ The RADIUS servers are deployed as ECS Fargate tasks and respond to authenticati
 
 It is critical the EIPs do not change since this would break the configuration between organisations and our services, thereby removing organisations' access to GovWifi.
 
-In order to prevent this from happening unintentionally, we configure AWS to deny any request to release the EIPs unless it's from the GovWifi AWS account. Deletion of EIPs is now managed by terraform in the [`aws-billing-account`][aws-billing-account] repo and protected from accidental change.
+In order to prevent this from happening unintentionally, we configure AWS to deny any request to release the EIPs unless it's from the GovWifi AWS account. Deletion of EIPs is now managed by terraform in the aws-billing-account repo and protected from accidental change.
 
 ## Bastions
 
