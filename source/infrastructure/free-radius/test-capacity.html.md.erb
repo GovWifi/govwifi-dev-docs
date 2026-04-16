@@ -2,7 +2,8 @@
 title: Test capacity
 weight: 90
 last_reviewed_on: "2026-04-13"
-review_in: 6 months
+review_in: 11 months
+
 ---
 
 # Capacity Testing for FreeRADIUS
@@ -11,11 +12,20 @@ To simulate RADIUS authentication traffic, we use [eapol_test](https://manpages.
 
 ## Connection and setup
 
-Select a staging RADIUS server and follow the setup instructions in this [document](https://docs.google.com/document/d/1rmUy_3hJoCZMWhwSTTgfwPBVGSQl8ixpjNH0TubV7qQ/edit?tab=t.0#heading=h.4k2u1i8qcyyw) to configure the test environment.
+We perform capacity testing in our AWS Development Environment. Follow the setup instructions in this [document](https://docs.google.com/document/d/1RhoARZ4nMlLjD9IjpRFoePLj2IpTYRNthuO6k9tRNg0) to perform the tests. 
+
+The code for the capacity testing suite is kept in [govwifi-terraform](https://github.com/GovWifi/govwifi-terraform/tree/master/govwifi-capacity-testing).
+
+## Results April 2026
+
+The results of the 2026 tests can be found in this [report](https://docs.google.com/document/d/183KJ7itiut5x_xxnyTHnASyZBTUeoPD1xdnWQZATnow). They may be made public after approval from our stakeholder.
+
+## Results July 2025
 
 Performance tests were conducted using custom EC2 instances in the GovWifi staging environment, targeting FreeRADIUS under two authentication methods: EAP-MSCHAPv2 and EAP-TLS.
 
-## Results
+This [document](https://docs.google.com/document/d/1rmUy_3hJoCZMWhwSTTgfwPBVGSQl8ixpjNH0TubV7qQ/edit?tab=t.0#heading=h.4k2u1i8qcyyw) details how the legacy capacity tests were performed.
+
 ### EAP-MSCHAPv2
 
 * Sustained throughput: ~290 auth/s per RADIUS container
