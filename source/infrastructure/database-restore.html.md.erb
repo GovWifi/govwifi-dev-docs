@@ -7,13 +7,12 @@ review_in: 9 months
 
 # Restoring Databases
 
-In case of a [Business Continuity](https://dev-docs.wifi.service.gov.uk/incidents-and-alerts/bcp_and_dr.html#business-continuity-and-disaster-recovery-management) restore of the Production environment to a new AWS account, follow the instructions below to restore the databases from the nightly backups stored in S3.
+In case of a [Business Continuity](https://dev-docs.wifi.service.gov.uk/incidents-and-alerts/bcp_and_dr.html#business-continuity-and-disaster-recovery-management) restore of the Production environment to a new AWS account, follow the instructions below to restore the databases from the nightly backups stored in S3. The nightly database backups for each environment are stored in an S3 bucket for each GovWifi environment called `govwifi-<subdomain-name/environment-name>-london-mysql-backup-data.`
+
+The CO/GDS IT Infrastructure team also keeps an additional copy of these backups. In the event that we loose access to our AWS accounts, we can [request a copy](https://docs.google.com/document/d/1h07adu7Ym6yN4kULbDskHQO91LhHpKMFSi4wxyZi1zs/edit#heading=h.v8cb2maaksg4) directly from the IT team. Databases can be restored from the nightly backups by following the instructions below. (Note: `gds-cli` may be aliased to `gds`.)
 
 ### Session database
-In case of a [Business Continuity](https://dev-docs.wifi.service.gov.uk/incidents-and-alerts/bcp_and_dr.html#business-continuity-and-disaster-recovery-management) restore of the Production environment to a new AWS account, DO NOT restore the session database. The session database is only kept for analytical purposes and for admins to view logs. A restore of the session database takes over an hour and would delay our recovery time. If you do wish restore the Session database for analysis purposes, ensure that your Bastion server has at least 100GB volume provisioned and the Session database instance has 100GB of storage allocated.
-
-The nightly database backups for each environment are stored in an S3 bucket for each Govwifi environment called `govwifi-<subdomain-name/environment-name>-london-mysql-backup-data.`
-The CO/GDS IT Infrastructure team also keeps an additional copy of these backups. In the event that we loose access to our AWS accounts, we can [request a copy](https://docs.google.com/document/d/1h07adu7Ym6yN4kULbDskHQO91LhHpKMFSi4wxyZi1zs/edit#heading=h.v8cb2maaksg4) directly from the IT team. Databases can be restored from the nightly backups by following the instructions below (note: gds-cli may be aliased to gds):
+Do **not** restore the session database. The session database is only kept for analytical purposes and for admins to view logs. A restore of the session database takes over an hour and would delay our recovery time. If you do wish restore the Session database for analysis purposes, ensure that your Bastion server has at least 100GB volume provisioned and the Session database instance has 100GB of storage allocated.
 
 ## Admin database and OTP secrets
 For new or different environments, the follow is necessary:
@@ -26,8 +25,7 @@ If the OTP secret cannot be restored:
 
  If you do not do this, no admin users will be able to log in after the restore.
 
-If you are restoring the admin database for an existing environment, the OTP secret should already be in place and you do not need to take any additional steps.
-**Please DO NOT restore the session database.** The session database is only kept for analytical purposes and for admins to view logs. A restore of the session database takes over an hour and would delay our recovery time. If you do wish restore the Session database for analysis purposes, ensure that your Bastion server has at least 100GB volume provisioned and the Session database instance has 100GB of storage allocated.
+If you are restoring the admin database for an existing environment, the OTP secret should already be in place. You do not need to take any additional steps.
 
 
 
@@ -47,8 +45,7 @@ PASSWORD_STORE_DIR=~/path_to_govwifi-build-repo-on-your-machine/passwords pass e
 ```
 ## Instructions
 
-**Locate the correct database file, e.g. staging backup files:**
-
+1. Locate the correct database file, e.g. staging backup files:
 Example using gds cli:
 ```
 gds-cli aws govwifi-staging -- aws s3 ls govwifi-staging-london -mysql-backup-data
@@ -57,9 +54,7 @@ Example using cod cli
 ```
 cod aws govwifi-staging -- aws s3 ls govwifi-staging-london-mysql-backup-data
 ```
-
-**Download the database backup file that you need, e.g. staging admin DB:**
-
+1. Download the database backup file that you need, e.g. staging admin DB:
 Example using gds cli
 ```
 gds-cli aws govwifi-staging -- aws s3 cp s3://govwifi-staging-london-mysql-backup-data/govwifi-backup-admin-2023-01-25-00-30.sql.gz.gpg .
