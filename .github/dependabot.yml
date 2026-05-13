@@ -27,6 +27,5 @@ updates:
     time: "03:00"
   open-pull-requests-limit: 10
   ignore:
+  # Ignore updates to Ruby as this will be handled by the ruby-updater workflow.
   - dependency-name: ruby
-    versions:
-    - 3.0.0.pre.alpine
