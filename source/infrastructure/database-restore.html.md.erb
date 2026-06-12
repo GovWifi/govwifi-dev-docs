@@ -11,25 +11,10 @@ In case of a [Business Continuity](https://dev-docs.wifi.service.gov.uk/incident
 
 The CO/GDS IT Infrastructure team also keeps an additional copy of these backups. In the event that we loose access to our AWS accounts, we can [request a copy](https://docs.google.com/document/d/1h07adu7Ym6yN4kULbDskHQO91LhHpKMFSi4wxyZi1zs/edit#heading=h.v8cb2maaksg4) directly from the IT team. Databases can be restored from the nightly backups by following the instructions below. (Note: `gds-cli` may be aliased to `gds`.)
 
-### Session database
+## Session database
 Do **not** restore the session database. The session database is only kept for analytical purposes and for admins to view logs. A restore of the session database takes over an hour and would delay our recovery time. If you do wish restore the Session database for analysis purposes, ensure that your Bastion server has at least 100GB volume provisioned and the Session database instance has 100GB of storage allocated.
 
-## Admin database and OTP secrets
-For new or different environments, the follow is necessary:
-
-When restoring the admin database, the OTP Secret Encryption Key for that environment **must** also be restored so that it matches the state of the restored database.
-
-If the OTP secret cannot be restored:
- 1. Generate a new OTP secret, by following the instructions
- 2. Reset MFA for all admin users, so they can re-enroll, by using the following the instructions [Two-factor authentication (2FA)](https://dev-docs.wifi.service.gov.uk/features/admin-2fa.html).
-
- If you do not do this, no admin users will be able to log in after the restore.
-
-If you are restoring the admin database for an existing environment, the OTP secret should already be in place. You do not need to take any additional steps.
-
-
-
-###  Retrieve GPG passphrase
+##  Retrieve GPG passphrase
 
 The S3 backup files are encrypted with GPG.
 (Locate the gpg passphrase you need in the [govwifi-build](https://github.com/GovWifi/govwifi-build/) repo (for example the passphrase for staging is located [here](https://github.com/GovWifi/govwifi-build/blob/master/passwords/keys/govwifi-database-staging-s3-encryption-key.gpg)).
@@ -106,3 +91,18 @@ Then select a table and run the following query to check the number of rows:
 ```
 SELECT COUNT(*) FROM <tablename>;
 ```
+
+## Admin database and OTP secrets
+
+For new or different environments, the follow is necessary:
+
+When restoring the admin database, the OTP Secret Encryption Key for that environment **must** also be restored so that it matches the state of the restored database.
+
+If the OTP secret cannot be restored:
+ 1. Follow the instructions to generate a new [OTP secret](https://docs.google.com/document/d/18zFZIHmd0KCdf59-LbPnxDCNE5oREEjHozS-p280q7U).
+ 2. Reset MFA for all admin users, so they can re-enroll, by using the following the instructions [Two-factor authentication (2FA)](https://dev-docs.wifi.service.gov.uk/features/admin-2fa.html).
+
+ If you do not do this, no admin users will be able to log in after the restore.
+
+If you are restoring the admin database for an existing environment, the OTP secret should already be in place. You do not need to take any additional steps.
+
