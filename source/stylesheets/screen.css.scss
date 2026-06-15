@@ -1,1 +1,11 @@
 @import "govuk_tech_docs";
+
+// Hide the "Report problem" link in the contribution banner while keeping
+// "View source" and "GitHub Repo". The govuk_tech_docs gem renders the
+// contribution banner from its own layout (core.erb), which a project-level
+// source/layouts/core.erb override does NOT replace (the gem registers its
+// source dir after the project's, so the gem layout wins). So the link has to
+// be removed via CSS. It is the only banner link pointing at /issues/new.
+.contribution-banner li:has(a[href*="/issues/new"]) {
+  display: none;
+}
