@@ -1,7 +1,7 @@
 ---
-title: How to look up user details
+title: How to add a new organisation
 weight: 20
-last_reviewed_on: "2025-12-10"
+last_reviewed_on: "2026-06-24"
 review_in: 12 months
 ---
 # How to add a new organisation (onboarding)
@@ -52,6 +52,14 @@ Once the organisation has been successfully added the following banner will appe
 - A confirmation banner will appear once the organisation has been added to the allow list
  <img src="/images/org_added_to_allow_list.png">
 - Once the domain is on the 'allow list',the organisation's IT administrator can now go to the standard GovWifi Admin sign-up page and successfully create their account
+
+```Developer Notes```
+
+- Adding to the allow list will not show the organisation on the [organisation public list](https://www.wifi.service.gov.uk/organisations-using-govwifi/) yet.
+- The organisation is not created when it is added to the allow list.
+- The new administrators must follow the [Sign-up Link](https://admin.wifi.service.gov.uk/users/sign_up) to create the organisation.
+- When the organisation is created, it will be added to the [organisations.yml](https://govwifi-production-product-page-data.s3.eu-west-2.amazonaws.com/organisations.yml) by the admin publish_organisation_names rake task at 22:00 UTC daily.
+
 
 ## If the organisation already has a GovWifi admin account
 
