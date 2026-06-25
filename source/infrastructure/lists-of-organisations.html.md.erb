@@ -21,7 +21,22 @@ The public list should mostly mirror the list of organisations setup on the admi
 - Some admin organisation names are for the third party who operates their network and we’re trying to show public sector organisations where it’s available not operators
 - Some organisations’ locations have GovWifi but they don’t control it, for example, another organisation may run the building's network. In this case we’d still like to show the ‘consuming admin’s’ organisation
 
-The public list can be updated manually by editing the [file](https://github.com/GovWifi/govwifi-product-page/blob/master/data/organisations.yml).
+### Updating the public list
+
+- The latest [organisations.yml](https://govwifi-production-product-page-data.s3.eu-west-2.amazonaws.com/organisations.yml) is published to the admin tool's S3 bucket at 22:00 UTC every day.
+- Organisations don't appear automatically on the public list, they need to be approved.
+- Run the product page's GitHub action [Fetch an updated list of organisations that use GovWifi from GovWifi-Admin](https://github.com/GovWifi/govwifi-product-page/actions/workflows/fetch-orgs.yml)
+- This will create a pull request that needs to be approved and merged. [Follow this link to see an example PR which adds an organization to the list](https://github.com/GovWifi/govwifi-product-page/pull/706)
+- Once the PR is merged the product page site needs rebuild and deploying
+- [Run the Github action Deploy-to-github-pages](https://github.com/GovWifi/govwifi-product-page/actions/workflows/deploy-to-github-pages.yml)
+- The build and deploy will take a few minutes to run.
+- [Check the organisation appears on the public list](https://www.wifi.service.gov.uk/organisations-using-govwifi/).
+- If it doesn't appear, rerun the deploy action as this sometimes doesn't work.
+- If this still doesn't work, [check the production organisations.yml file](https://govwifi-production-product-page-data.s3.eu-west-2.amazonaws.com/organisations.yml) to see of the organisation is listed.
+
+**Note**:
+- [The Organisation will not be present in organisations.yml](https://govwifi-production-product-page-data.s3.eu-west-2.amazonaws.com/organisations.yml) if the new organisation has not been created by its IT administrators.
+
 
 ## The admin organisation list
 
