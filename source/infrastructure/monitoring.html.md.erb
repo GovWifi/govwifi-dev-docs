@@ -19,7 +19,7 @@ Currently, this system gathers metrics on active and roaming users, publishes th
 
 [GovWifi Production Active and Roaming Users Tableau Dashboard](https://prod-uk-a.online.tableau.com/#/site/cdioanalytics/workbooks/3326909/views)
 
-Future plans include adding account health metrics to keep IT administrators compliant with GovWifi terms and conditions.
+Account health metrics, which help keep IT administrators compliant with GovWifi terms and conditions, are also published to the Metrics API — see [Account Health Metrics](#account-health-metrics) below.
 
 ![performance-metrics-and-reporting]
 
@@ -192,6 +192,34 @@ curl -H "Authorization: Bearer <api_key>" \
 
 The response is a downloadable JSON array of metric records.
 
+
+## Account Health Metrics
+
+Account health metrics are separate from the performance metrics described above. They track organisation and administrator compliance with GovWifi terms and conditions — for example, whether an organisation has enough active administrators — rather than service usage.
+
+### Account Health Rake Tasks
+
+The **Admin** application (`govwifi-admin`) defines three Rake tasks under the `metrics` namespace. Each task builds a use case class that writes a JSON payload to S3 and posts a single metric record to the Metrics API (`POST /v1/record`) via `UseCases::PerformancePlatform::MetricsApiPublisher`.
+
+| Rake task | Use Case Class | Metric name | What it measures |
+|-----------|-----------------|-------------|-------------------|
+| `rake metrics:publish_organisation_count` | `UseCases::Administrator::PublishOrganisationCount` | `account-health-organisation-count` | Total number of organisations |
+| `rake metrics:publish_orgs_with_dormant_admins_count` | `UseCases::Administrator::PublishOrgsWithDormantAdminsCount` | `account-health-orgs-with-dormant-admins-count` | Organisations where every admin (a user with both `can_manage_locations` and `can_manage_team`) has not signed in for 365 days or more, or has never signed in |
+| `rake metrics:publish_orgs_with_less_than_two_admins_count` | `UseCases::Administrator::PublishOrgsWithLessThanTwoAdminsCount` | `account-health-orgs-with-less-than-two-admins-count` | Organisations with fewer than two admin users |
+
+### Scheduling
+
+Each task runs daily as an ECS Fargate scheduled task on the Admin `admin_cluster`, triggered by a CloudWatch Event Rule and Target defined in `govwifi-terraform/govwifi-admin/event-rules.tf` and `scheduled-tasks.tf`:
+
+| Rake task | Schedule (UTC) | CloudWatch Event Rule |
+|-----------|-----------------|------------------------|
+| `metrics:publish_organisation_count` | Daily at 05:00 | `daily_publish_organisation_count` |
+| `metrics:publish_orgs_with_dormant_admins_count` | Daily at 05:15 | `daily_publish_orgs_with_dormant_admins_count` |
+| `metrics:publish_orgs_with_less_than_two_admins_count` | Daily at 05:30 | `daily_publish_orgs_with_less_than_two_admins_count` |
+
+### Destination
+
+Each task writes its payload to the `S3_METRICS_BUCKET` S3 bucket (one JSON file per day), then posts the same metric to the Metrics API. From there it is available via the `GET /v1/data/export` endpoint and picked up by the daily Tableau publication described under [Key Performance Metrics and Reporting](#key-performance-metrics-and-reporting) above.
 
 ## Grafana
 
