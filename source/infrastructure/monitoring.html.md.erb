@@ -201,13 +201,15 @@ Account health metrics are separate from the performance metrics described above
 
 ### Account Health Rake Tasks
 
-The **Admin** application (`govwifi-admin`) defines three Rake tasks under the `metrics` namespace. Each task builds a use case class that writes a JSON payload to S3 and posts a single metric record to the Metrics API (`POST /v1/record`) via `UseCases::PerformancePlatform::MetricsApiPublisher`.
+The **Admin** application (`govwifi-admin`) defines five Rake tasks under the `metrics` namespace. Each task builds a use case class (under `UseCases::Administrator`) that writes a JSON payload to S3 and posts a single metric record to the Metrics API (`POST /v1/record`) via `UseCases::PerformancePlatform::MetricsApiPublisher`.
 
 | Rake task | Use Case Class | Metric name | What it measures |
 |-----------|-----------------|-------------|-------------------|
-| `rake metrics:publish_organisation_count` | `UseCases::Administrator::PublishOrganisationCount` | `account-health-organisation-count` | Total number of organisations |
-| `rake metrics:publish_orgs_with_dormant_admins_count` | `UseCases::Administrator::PublishOrgsWithDormantAdminsCount` | `account-health-orgs-with-dormant-admins-count` | Organisations where every admin (a user with both `can_manage_locations` and `can_manage_team`) has not signed in for 365 days or more, or has never signed in |
-| `rake metrics:publish_orgs_with_less_than_two_admins_count` | `UseCases::Administrator::PublishOrgsWithLessThanTwoAdminsCount` | `account-health-orgs-with-less-than-two-admins-count` | Organisations with fewer than two admin users |
+| `rake metrics:publish_organisation_count` | `PublishOrganisationCount` | `account-health-organisation-count` | Total number of organisations |
+| `rake metrics:publish_orgs_with_less_than_two_admins_count` | `PublishOrgsWithLessThanTwoAdminsCount` | `account-health-orgs-with-less-than-two-admins-count` | Organisations with fewer than two admin users (a user with both `can_manage_locations` and `can_manage_team`) |
+| `rake metrics:publish_orgs_with_dormant_admins_count` | `PublishOrgsWithDormantAdminsCount` | `account-health-orgs-with-dormant-admins-count` | Organisations where fewer than two admin users have signed in within the last 365 days (counting never-signed-in admins as dormant) |
+| `rake metrics:publish_orgs_have_no_active_admins_count` | `PublishOrgsHaveNoActiveAdminsCount` | `account-health-orgs-have-no-active-admins-count` | Organisations with fewer than two admin users, none of whom have signed in within the last year |
+| `rake metrics:publish_orgs_with_no_signed_mou_count` | `PublishOrgsWithNoSignedMouCount` | `account-health-orgs-with-no-signed-mou-count` | Organisations with no signed Memorandum of Understanding (MOU) on record |
 
 ### Scheduling
 
@@ -218,10 +220,12 @@ Each task runs daily as an ECS Fargate scheduled task on the Admin `admin_cluste
 | `metrics:publish_organisation_count` | Daily at 05:00 | `daily_publish_organisation_count` |
 | `metrics:publish_orgs_with_dormant_admins_count` | Daily at 05:15 | `daily_publish_orgs_with_dormant_admins_count` |
 | `metrics:publish_orgs_with_less_than_two_admins_count` | Daily at 05:30 | `daily_publish_orgs_with_less_than_two_admins_count` |
+| `metrics:publish_orgs_with_no_signed_mou_count` | Daily at 05:30 | `daily_publish_orgs_with_no_signed_mou_count` |
+| `metrics:publish_orgs_have_no_active_admins_count` | Daily at 05:45 | `daily_publish_orgs_have_no_active_admins_count` |
 
 ### Destination
 
-Each task writes its payload to the `S3_METRICS_BUCKET` S3 bucket (one JSON file per day), then posts the same metric to the Metrics API. From there it is available via the `GET /v1/data/export` endpoint and picked up by the daily Tableau publication described under [Key Performance Metrics and Reporting](#key-performance-metrics-and-reporting) above.
+Each task writes its payload to the `S3_METRICS_BUCKET` S3 bucket (one JSON file per day, under a folder named after the metric), then posts the same metric to the Metrics API. From there it is available via the `GET /v1/data/export` endpoint and picked up by the daily Tableau publication described under [Key Performance Metrics and Reporting](#key-performance-metrics-and-reporting) above.
 
 ## Grafana
 
