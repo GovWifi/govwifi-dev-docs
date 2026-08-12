@@ -130,7 +130,7 @@ All secrets are stored in AWS Secrets Manager:
 | Secret name | Contents | Used by |
 |-------------|----------|---------|
 | `govwifi/metrics-api/key` | API Bearer token | Metrics API (auth enforcement), Logging API (posting metrics), CodeBuild (recovery export) |
-| `govwifi/metrics-data-publisher/tableau` | JSON with `TOKEN_NAME`, `TOKEN_VALUE`, `SITE_ID`, `SERVER_URL`, `PROJECT_NAME` | CodeBuild — passed as environment variables to the publisher container |
+| `govwifi/metrics-data-publisher/tableau` | JSON with `TOKEN_NAME`, `TOKEN_VALUE`, `SITE_ID`, `SERVER_URL`, `PROJECT_NAME`, and optionally `TOKEN_EXPIRES_AT` | CodeBuild — passed as environment variables to the publisher container |
 | `metrics/db/credentials` | JSON with `username` and `password` | Metrics API ECS task |
 
 #### Rotating the Tableau Personal Access Token
@@ -140,6 +140,43 @@ Tableau Cloud PATs expire approximately every year. When the token expires the C
 1. Log in to Tableau Cloud and generate a new PAT (Settings → Personal Access Tokens).
 2. Update the `govwifi/metrics-data-publisher/tableau` secret in AWS Secrets Manager with the new `TOKEN_NAME` and `TOKEN_VALUE`.
 3. Trigger the CodeBuild project manually (see below) to verify the new token works.
+
+**You do not need to set an expiry date by hand.** Tableau's API has no way to ask a token when it expires, so the build derives one automatically: if the secret has no `TOKEN_EXPIRES_AT` field, the buildspec reads the secret's own Secrets Manager `LastChangedDate` — which updates the moment you complete step 2 above — and assumes a 365-day PAT lifetime from that date. This is why no manual date entry is required for the common case.
+
+Two things worth knowing about that auto-derivation:
+
+- **Any edit to the secret resets the clock**, not just a genuine token rotation — e.g. fixing a typo in `PROJECT_NAME` would make the expiry check think the PAT is a year fresher than it really is. If you edit the secret for a reason other than rotating the token, and you know the real PAT expiry, set `TOKEN_EXPIRES_AT` (`YYYY-MM-DD`) explicitly on the secret — an explicit value always takes precedence over the derived one.
+- 365 days is an assumption, not a guarantee — Tableau Cloud site admins can configure a shorter maximum PAT lifetime. If your site uses a different value, set `TOKEN_EXPIRES_AT` explicitly rather than relying on the default.
+
+See [Tableau PAT expiry warning](#automated-alerting) below for how you'll be notified before this becomes a problem.
+
+### Automated Alerting
+
+The checks below run continuously so engineers find out about a problem the same day it happens, rather than leadership noticing stale data in Tableau. All alarms route to the `#govwifi-monitoring` Slack channel via AWS Chatbot, using the `capacity_notifications_arn` SNS topic. Terraform for these alarms lives in `govwifi-terraform/govwifi-metrics/alarms.tf` and `govwifi-terraform/govwifi-api/metrics-collection-alarms.tf`.
+
+| Alarm | Fires when | What it tells you |
+|-------|------------|---------------------|
+| `<env>-tableau-publication-failed` | The `tableau-data-source-publication` CodeBuild job has ≥1 failed build in 24h | Phase 2 (Tableau publication) broke — check the CodeBuild logs |
+| `<env>-metrics-api-no-records-written` | Zero metric records of any kind were written to the Metrics API in 24h | Nothing reached the Metrics API at all — likely the daily logging ECS task never ran |
+| `<env>-daily-metrics-logging-failed-invocations` | EventBridge could not invoke the daily metrics logging ECS task | Scheduling-layer failure — the task never even started, distinct from the alarm above where it started but produced nothing |
+| `<env>-account-health-metric-missing-<metric-name>` (one per metric, see below) | A specific `account-health-*` metric hasn't been recorded in 24h | One rake task failed silently while the others kept running — the aggregate "no records written" alarm above wouldn't catch this |
+| `<env>-tableau-pat-expiry-warning` | The daily publication run logs a "PAT expires soon" warning | The Tableau Personal Access Token needs rotating before it starts failing outright — see [Rotating the Tableau Personal Access Token](#rotating-the-tableau-personal-access-token) |
+
+#### Per-metric account health alarms
+
+The generic "no records written" alarm only proves *some* metric arrived that day — it wouldn't notice if, say, `publish_orgs_with_no_signed_mou_count` silently stopped working while the other four account health tasks kept succeeding. To catch that, a CloudWatch Logs metric filter on the Metrics API log group extracts the `name` field from each `"Metric recorded"` log line (scoped to the `account-health-*` prefix) as a `MetricName` dimension, publishing `GovWifi/MetricsAPI/AccountHealthMetricRecordsWritten`. A separate alarm then watches each of the five account health metric names individually:
+
+- `account-health-organisation-count`
+- `account-health-orgs-with-less-than-two-admins-count`
+- `account-health-orgs-with-dormant-admins-count`
+- `account-health-orgs-have-no-active-admins-count`
+- `account-health-orgs-with-no-signed-mou-count`
+
+Because there's no default value on a dimensioned metric filter, a task that doesn't run produces no data point at all for that day — the alarm treats missing data as breaching, which is exactly the "it didn't happen" signal we want. If one of these fires, check the corresponding `rake metrics:publish_*` task's CloudWatch Logs on the admin ECS cluster (see [Account Health Rake Tasks](#account-health-rake-tasks) above).
+
+#### Tableau PAT expiry warning
+
+`recover_and_publish` logs a line to the CodeBuild log group (`govwifi-metrics-data-publisher-group`) reporting how many days remain before the Tableau PAT expires, derived as described in [Rotating the Tableau Personal Access Token](#rotating-the-tableau-personal-access-token). A log metric filter matches the exact phrase `WARNING: Tableau PAT expiry`, and the alarm fires once that appears — i.e. once the token is within 30 days of expiring, or has already expired. This is deliberately non-fatal on the publisher side (today's publication still succeeds even with a token expiring soon), so this alarm is the only place the warning surfaces to an engineer.
 
 ### Monitoring and Troubleshooting
 
