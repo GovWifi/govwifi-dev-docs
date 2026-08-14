@@ -130,16 +130,49 @@ All secrets are stored in AWS Secrets Manager:
 | Secret name | Contents | Used by |
 |-------------|----------|---------|
 | `govwifi/metrics-api/key` | API Bearer token | Metrics API (auth enforcement), Logging API (posting metrics), CodeBuild (recovery export) |
-| `govwifi/metrics-data-publisher/tableau` | JSON with `TOKEN_NAME`, `TOKEN_VALUE`, `SITE_ID`, `SERVER_URL`, `PROJECT_NAME` | CodeBuild — passed as environment variables to the publisher container |
+| `govwifi/metrics-data-publisher/tableau` | JSON with `TOKEN_NAME`, `TOKEN_VALUE`, `SITE_ID`, `SERVER_URL`, `PROJECT_NAME`, and optionally `TOKEN_EXPIRES_AT` | CodeBuild — passed as environment variables to the publisher container |
 | `metrics/db/credentials` | JSON with `username` and `password` | Metrics API ECS task |
 
 #### Rotating the Tableau Personal Access Token
 
 Tableau Cloud PATs expire approximately every year. When the token expires the CodeBuild job will fail with an authentication error. To rotate it:
 
-1. Log in to Tableau Cloud and generate a new PAT (Settings → Personal Access Tokens).
+1. Log in to Tableau Cloud and generate a new PAT (Settings → Personal Access Tokens), noting the expiry date Tableau shows for it.
 2. Update the `govwifi/metrics-data-publisher/tableau` secret in AWS Secrets Manager with the new `TOKEN_NAME` and `TOKEN_VALUE`.
-3. Trigger the CodeBuild project manually (see below) to verify the new token works.
+3. Also set the `TOKEN_EXPIRES_AT` field (`YYYY-MM-DD`) on the same secret to that expiry date. Tableau's API has no way to ask a token when it expires, so this must be set by hand — there is no automatic derivation.
+4. Trigger the CodeBuild project manually (see below) to verify the new token works.
+
+**If `TOKEN_EXPIRES_AT` is left unset**, the expiry check is silently skipped and you will get no warning before the PAT expires and the CodeBuild job starts failing outright. Always set it as part of rotation, step 3 above.
+
+See [Tableau PAT expiry warning](#automated-alerting) below for how you'll be notified before this becomes a problem.
+
+### Automated Alerting
+
+The checks below run continuously so engineers find out about a problem the same day it happens, rather than leadership noticing stale data in Tableau. All alarms route to the `#govwifi-monitoring` Slack channel via AWS Chatbot, using the `capacity_notifications_arn` SNS topic. Terraform for these alarms lives in `govwifi-terraform/govwifi-metrics/alarms.tf` and `govwifi-terraform/govwifi-api/metrics-collection-alarms.tf`.
+
+| Alarm | Fires when | What it tells you |
+|-------|------------|---------------------|
+| `<env>-tableau-publication-failed` | The `tableau-data-source-publication` CodeBuild job has ≥1 failed build in 24h | Phase 2 (Tableau publication) broke — check the CodeBuild logs |
+| `<env>-metrics-api-no-records-written` | Zero metric records of any kind were written to the Metrics API in 24h | Nothing reached the Metrics API at all — likely the daily logging ECS task never ran |
+| `<env>-daily-metrics-logging-failed-invocations` | EventBridge could not invoke the daily metrics logging ECS task | Scheduling-layer failure — the task never even started, distinct from the alarm above where it started but produced nothing |
+| `<env>-account-health-metric-missing-<metric-name>` (one per metric, see below) | A specific `account-health-*` metric hasn't been recorded in 24h | One rake task failed silently while the others kept running — the aggregate "no records written" alarm above wouldn't catch this |
+| `<env>-tableau-pat-expiry-warning` | The daily publication run logs a "PAT expires soon" warning | The Tableau Personal Access Token needs rotating before it starts failing outright — see [Rotating the Tableau Personal Access Token](#rotating-the-tableau-personal-access-token) |
+
+#### Per-metric account health alarms
+
+The generic "no records written" alarm only proves *some* metric arrived that day — it wouldn't notice if, say, `publish_orgs_with_no_signed_mou_count` silently stopped working while the other four account health tasks kept succeeding. To catch that, a CloudWatch Logs metric filter on the Metrics API log group extracts the `name` field from each `"Metric recorded"` log line (scoped to the `account-health-*` prefix) as a `MetricName` dimension, publishing `GovWifi/MetricsAPI/AccountHealthMetricRecordsWritten`. A separate alarm then watches each of the five account health metric names individually:
+
+- `account-health-organisation-count`
+- `account-health-orgs-with-less-than-two-admins-count`
+- `account-health-orgs-with-dormant-admins-count`
+- `account-health-orgs-have-no-active-admins-count`
+- `account-health-orgs-with-no-signed-mou-count`
+
+Because there's no default value on a dimensioned metric filter, a task that doesn't run produces no data point at all for that day — the alarm treats missing data as breaching, which is exactly the "it didn't happen" signal we want. If one of these fires, check the corresponding `rake metrics:publish_*` task's CloudWatch Logs on the admin ECS cluster (see [Account Health Rake Tasks](#account-health-rake-tasks) above).
+
+#### Tableau PAT expiry warning
+
+`recover_and_publish` logs a line to the CodeBuild log group (`govwifi-metrics-data-publisher-group`) reporting how many days remain before the Tableau PAT expires, based on the `TOKEN_EXPIRES_AT` value set on the secret (see [Rotating the Tableau Personal Access Token](#rotating-the-tableau-personal-access-token) — if that field is unset, the check is skipped and nothing is logged). A log metric filter matches the exact phrase `WARNING: Tableau PAT expiry`, and the alarm fires once that appears — i.e. once the token is within 30 days of expiring, or has already expired. This is deliberately non-fatal on the publisher side (today's publication still succeeds even with a token expiring soon), so this alarm is the only place the warning surfaces to an engineer.
 
 ### Monitoring and Troubleshooting
 
