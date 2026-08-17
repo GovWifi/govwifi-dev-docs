@@ -201,7 +201,7 @@ Account health metrics are separate from the performance metrics described above
 
 ### Account Health Rake Tasks
 
-The **Admin** application (`govwifi-admin`) defines five Rake tasks under the `metrics` namespace. Each task builds a use case class (under `UseCases::Administrator`) that writes a JSON payload to S3 and posts a single metric record to the Metrics API (`POST /v1/record`) via `UseCases::PerformancePlatform::MetricsApiPublisher`.
+The **Admin** application (`govwifi-admin`) defines six Rake tasks under the `metrics` namespace. Each task builds a use case class (under `UseCases::Administrator`) that writes a JSON payload to S3 and posts a single metric record to the Metrics API (`POST /v1/record`) via `UseCases::PerformancePlatform::MetricsApiPublisher`.
 
 | Rake task | Use Case Class | Metric name | What it measures |
 |-----------|-----------------|-------------|-------------------|
@@ -210,6 +210,7 @@ The **Admin** application (`govwifi-admin`) defines five Rake tasks under the `m
 | `rake metrics:publish_orgs_with_dormant_admins_count` | `PublishOrgsWithDormantAdminsCount` | `account-health-orgs-with-dormant-admins-count` | Organisations where fewer than two admin users have signed in within the last 365 days (counting never-signed-in admins as dormant) |
 | `rake metrics:publish_orgs_have_no_active_admins_count` | `PublishOrgsHaveNoActiveAdminsCount` | `account-health-orgs-have-no-active-admins-count` | Organisations with fewer than two admin users, none of whom have signed in within the last year |
 | `rake metrics:publish_orgs_with_no_signed_mou_count` | `PublishOrgsWithNoSignedMouCount` | `account-health-orgs-with-no-signed-mou-count` | Organisations with no signed Memorandum of Understanding (MOU) on record |
+| `rake metrics:publish_orgs_with_no_physical_address_for_ip_count` | `PublishOrgsWithNoPhysicalAddressForIpCount` | `account-health-orgs-with-no-physical-address-for-ip-count` | Locations with missing or placeholder physical address ('unknown' or blank address and postcode) |
 
 ### Scheduling
 
@@ -222,6 +223,7 @@ Each task runs daily as an ECS Fargate scheduled task on the Admin `admin_cluste
 | `metrics:publish_orgs_with_less_than_two_admins_count` | Daily at 05:30 | `daily_publish_orgs_with_less_than_two_admins_count` |
 | `metrics:publish_orgs_with_no_signed_mou_count` | Daily at 05:30 | `daily_publish_orgs_with_no_signed_mou_count` |
 | `metrics:publish_orgs_have_no_active_admins_count` | Daily at 05:45 | `daily_publish_orgs_have_no_active_admins_count` |
+| `metrics:publish_orgs_with_no_physical_address_for_ip_count` | Daily at 06:00 | `daily_publish_orgs_with_no_physical_address_for_ip_count` |
 
 ### Destination
 
