@@ -201,7 +201,7 @@ Account health metrics are separate from the performance metrics described above
 
 ### Account Health Rake Tasks
 
-The **Admin** application (`govwifi-admin`) defines five Rake tasks under the `metrics` namespace. Each task builds a use case class (under `UseCases::Administrator`) that writes a JSON payload to S3 and posts a single metric record to the Metrics API (`POST /v1/record`) via `UseCases::PerformancePlatform::MetricsApiPublisher`.
+The **Admin** application (`govwifi-admin`) defines six Rake tasks under the `metrics` namespace. Each task builds a use case class (under `UseCases::Administrator`) that writes a JSON payload to S3 and posts a single metric record to the Metrics API (`POST /v1/record`) via `UseCases::PerformancePlatform::MetricsApiPublisher`.
 
 | Rake task | Use Case Class | Metric name | What it measures |
 |-----------|-----------------|-------------|-------------------|
@@ -210,6 +210,7 @@ The **Admin** application (`govwifi-admin`) defines five Rake tasks under the `m
 | `rake metrics:publish_orgs_with_dormant_admins_count` | `PublishOrgsWithDormantAdminsCount` | `account-health-orgs-with-dormant-admins-count` | Organisations where fewer than two admin users have signed in within the last 365 days (counting never-signed-in admins as dormant) |
 | `rake metrics:publish_orgs_have_no_active_admins_count` | `PublishOrgsHaveNoActiveAdminsCount` | `account-health-orgs-have-no-active-admins-count` | Organisations with fewer than two admin users, none of whom have signed in within the last year |
 | `rake metrics:publish_orgs_with_no_signed_mou_count` | `PublishOrgsWithNoSignedMouCount` | `account-health-orgs-with-no-signed-mou-count` | Organisations with no signed Memorandum of Understanding (MOU) on record |
+| `rake metrics:publish_orgs_with_no_physical_address_for_ip_count` | `PublishOrgsWithNoPhysicalAddressForIpCount` | `account-health-orgs-with-no-physical-address-for-ip-count` | Organisations that have 1 or more locations with a missing or placeholder physical address ('unknown' or blank address and postcode) |
 
 ### Scheduling
 
@@ -222,10 +223,27 @@ Each task runs daily as an ECS Fargate scheduled task on the Admin `admin_cluste
 | `metrics:publish_orgs_with_less_than_two_admins_count` | Daily at 05:30 | `daily_publish_orgs_with_less_than_two_admins_count` |
 | `metrics:publish_orgs_with_no_signed_mou_count` | Daily at 05:30 | `daily_publish_orgs_with_no_signed_mou_count` |
 | `metrics:publish_orgs_have_no_active_admins_count` | Daily at 05:45 | `daily_publish_orgs_have_no_active_admins_count` |
+| `metrics:publish_orgs_with_no_physical_address_for_ip_count` | Daily at 06:00 | `daily_publish_orgs_with_no_physical_address_for_ip_count` |
 
 ### Destination
 
 Each task writes its payload to the `S3_METRICS_BUCKET` S3 bucket (one JSON file per day, under a folder named after the metric), then posts the same metric to the Metrics API. From there it is available via the `GET /v1/data/export` endpoint and picked up by the daily Tableau publication described under [Key Performance Metrics and Reporting](#key-performance-metrics-and-reporting) above.
+
+### Monitoring and Alerting
+
+Account health metric publishing is monitored in AWS CloudWatch via log metric filters and metric alarms defined in `govwifi-terraform/govwifi-metrics/alarms.tf`:
+
+- **Metric Filter (`AccountHealthMetricRecordsWritten`)**: Scans the Metrics API CloudWatch log group (`metrics-api-log-group-<env>`) for successful `POST /v1/record` log events (`{ $.msg = "Metric recorded" && $.name = "account-health-*" }`) and dimensions counts by `MetricName`.
+- **Missing Metric Alarms (`<env_name>-account-health-metric-missing-<metric_name>`)**: A dedicated CloudWatch Metric Alarm is provisioned for each account health metric (including `<env_name>-account-health-metric-missing-account-health-orgs-with-no-physical-address-for-ip-count`). If no record for that metric arrives within a 24-hour evaluation window, the alarm triggers and sends a notification to the capacity notifications SNS topic.
+
+#### Troubleshooting Account Health Task Failures
+
+If an account health metric missing alarm triggers:
+
+1. **Check ECS Task History**: In the AWS Console, open the **Admin ECS Cluster** (`<env_name>-admin-cluster`) and inspect the **Tasks** tab (filtered to Stopped tasks) to see if the scheduled task executed or stopped with a non-zero exit code.
+2. **Inspect Task Logs**: Review CloudWatch logs for the Admin scheduled tasks under the Admin container log stream. Check for database connection errors or unhandled exceptions.
+3. **Verify S3 Upload**: Check the `S3_METRICS_BUCKET` bucket under `account-health-orgs-with-no-physical-address-for-ip-count/` to verify if the daily JSON payload was successfully written.
+4. **Verify Metrics API Connectivity**: Test the Metrics API health endpoint (`GET /health`) and verify bearer token validity in `govwifi/metrics-api/key`.
 
 ## Grafana
 
