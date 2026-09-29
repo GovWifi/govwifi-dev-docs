@@ -1,7 +1,7 @@
 ---
 title: Monitoring
 weight: 20
-last_reviewed_on: "2025-10-04"
+last_reviewed_on: "2026-09-29"
 review_in: 6 months
 ---
 
@@ -37,7 +37,7 @@ The pipeline runs in two sequential phases each day:
 
 **Phase 1 — Metric collection (daily at 05:00 UTC)**
 
-An ECS scheduled task in the Logging API runs `bundle exec rake publish_daily_total_metrics`. It queries the sessions database and POSTs rolling metrics to the Metrics API, covering username-based active users as well as Certificate-Based Authentication (EAP-TLS) unique users:
+An ECS scheduled task in the Logging API runs `bundle exec rake publish_daily_total_metrics`. It queries the sessions database and POSTs rolling metrics to the Metrics API, covering username-based active users as well as Certificate-Based Authentication (EAP-TLS) and PEAP unique users:
 
 | Metric name (stored in API) | Display name in Tableau |
 |-----------------------------|-------------------------|
@@ -47,11 +47,13 @@ An ECS scheduled task in the Logging API runs `bundle exec rake publish_daily_to
 | `month-to-date-total-roaming-users` | Roaming Users (MTD) |
 | `service-report-active-tls-user-rolling-count` | Active TLS Users |
 | `service-report-active-tls-user-mtd-count` | Active TLS Users (MTD) |
+| `service-report-peap-unique-users-rolling-count` | PEAP Unique Users |
+| `service-report-peap-unique-users-mtd-count` | PEAP Unique Users (MTD) |
 
 The source code for the collection logic is in `govwifi-logging-api`:
-- Tasks: `tasks/recover_active_users.rb`, `tasks/publish_active_tls_users.rb`
-- Senders: `lib/performance/metrics/daily_metrics_sender.rb`, `lib/performance/metrics/tls_metric_sender.rb`
-- Use cases: `lib/performance/use_case/monthly_rolling_window_active_tls_users.rb`, `lib/performance/use_case/month_to_date_active_tls_users.rb`
+- Tasks: `tasks/recover_active_users.rb`, `tasks/publish_active_tls_users.rb`, `tasks/publish_peap_unique_users.rb`
+- Senders: `lib/performance/metrics/daily_metrics_sender.rb`, `lib/performance/metrics/tls_metric_sender.rb`, `lib/performance/metrics/peap_metric_sender.rb`
+- Use cases: `lib/performance/use_case/monthly_rolling_window_active_tls_users.rb`, `lib/performance/use_case/month_to_date_active_tls_users.rb`, `lib/performance/use_case/monthly_rolling_window_peap_unique_users.rb`, `lib/performance/use_case/month_to_date_peap_unique_users.rb`
 - API client: `lib/performance/metrics/metrics_api_publisher.rb`
 
 The Logging API task is triggered by the `<env>-daily-metrics-logging` CloudWatch Event Rule (see `govwifi-terraform/govwifi-api/event-rules.tf`).
@@ -163,6 +165,8 @@ BEGIN: [monthly_rolling_total-day-2026-06-25] Fetching and uploading metrics...
 END: [monthly_rolling_total-day-2026-06-25] Done.
 BEGIN: [service-report-active-tls-user-rolling-count-2026-06-25] Fetching and uploading TLS metrics...
 END: [service-report-active-tls-user-rolling-count-2026-06-25] Done.
+BEGIN: [service-report-peap-unique-users-rolling-count-2026-06-25] Fetching and uploading PEAP metrics...
+END: [service-report-peap-unique-users-rolling-count-2026-06-25] Done.
 ```
 
 A warning line such as `Metrics API upload failed` means the Metrics API was unreachable or returned an error.
@@ -335,6 +339,20 @@ Generates 30-day rolling window and month-to-date unique TLS (Certificate-Based 
 | `month_to_date_tls` | `Performance::UseCase::MonthToDateActiveTlsUsers` | `service-report-active-tls-user-mtd-count` | Active TLS Users (MTD) |
 
 Each metric is stored in `S3_METRICS_BUCKET` as a daily JSON file (e.g. `service-report-active-tls-user-rolling-count-2026-07-17`) containing `{"count":...,"run_time":...,"metric_name":...,"period":"day","date":...}` and posted to the Metrics API (`POST /v1/record`).
+The task is invoked automatically every morning as part of `bundle exec rake publish_daily_total_metrics`.
+
+#### PEAP Unique Users Task
+
+**Task**: `bundle exec rake publish_peap_unique_users[date]`
+
+Generates 30-day rolling window and month-to-date unique PEAP user counts from the `sessions` table where `username IS NOT NULL`, `success = 1`, and distinct `username`s are counted.
+
+| Metric | Use Case Class | S3 Folder / Metric Name | Tableau Display Name |
+|--------|----------------|-------------------------|----------------------|
+| `monthly_rolling_peap` | `Performance::UseCase::MonthlyRollingWindowPeapUniqueUsers` | `service-report-peap-unique-users-rolling-count` | PEAP Unique Users |
+| `month_to_date_peap` | `Performance::UseCase::MonthToDatePeapUniqueUsers` | `service-report-peap-unique-users-mtd-count` | PEAP Unique Users (MTD) |
+
+Each metric is stored in `S3_METRICS_BUCKET` as a daily JSON file (e.g. `service-report-peap-unique-users-rolling-count-2026-07-17`) containing `{"count":...,"run_time":...,"metric_name":...,"period":"day","date":...}` and posted to the Metrics API (`POST /v1/record`).
 The task is invoked automatically every morning as part of `bundle exec rake publish_daily_total_metrics`.
 
 
