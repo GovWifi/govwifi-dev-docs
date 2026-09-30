@@ -49,6 +49,8 @@ An ECS scheduled task in the Logging API runs `bundle exec rake publish_daily_to
 | `service-report-active-tls-user-mtd-count` | Active TLS Users (MTD) |
 | `service-report-peap-unique-users-rolling-count` | PEAP Unique Users |
 | `service-report-peap-unique-users-mtd-count` | PEAP Unique Users (MTD) |
+| `service-report-organisations-addeded-rolling-count` | Organisations Added |
+| `service-report-organisations-addeded-mtd-count` | Organisations Added (MTD) |
 
 The source code for the collection logic is in `govwifi-logging-api`:
 - Tasks: `tasks/recover_active_users.rb`, `tasks/publish_active_tls_users.rb`, `tasks/publish_peap_unique_users.rb`
@@ -57,6 +59,15 @@ The source code for the collection logic is in `govwifi-logging-api`:
 - API client: `lib/performance/metrics/metrics_api_publisher.rb`
 
 The Logging API task is triggered by the `<env>-daily-metrics-logging` CloudWatch Event Rule (see `govwifi-terraform/govwifi-api/event-rules.tf`).
+
+Additionally, organisations added metrics are collected in `govwifi-admin`:
+- Task: `lib/tasks/publish_organisations_added.rake` (`metrics:publish_organisations_added`)
+- Sender: `lib/performance/metrics/organisations_added_metric_sender.rb`
+- Use cases: `lib/performance/use_case/monthly_rolling_window_organisations_added.rb`, `lib/performance/use_case/month_to_date_organisations_added.rb`
+- Repository: `lib/performance/repository/organisation.rb`
+- API client: `lib/use_cases/performance_platform/metrics_api_publisher.rb`
+
+The Admin task is triggered daily at 06:15 UTC by the `<env_name>-daily-publish-organisations-added` CloudWatch Event Rule (see `govwifi-terraform/govwifi-admin/event-rules.tf`).
 
 **Phase 2 — Tableau publication (daily at 07:05 UTC)**
 
@@ -110,6 +121,7 @@ The published data source appears under the project folder named in the `PROJECT
 | Schedule | What runs | Where defined |
 |----------|-----------|---------------|
 | Daily at 05:00 UTC | `rake publish_daily_total_metrics` (Logging API ECS task) | `govwifi-terraform/govwifi-api/event-rules.tf` |
+| Daily at 06:15 UTC | `rake metrics:publish_organisations_added` (Admin ECS task) | `govwifi-terraform/govwifi-admin/event-rules.tf` |
 | Daily at 07:05 UTC | CodeBuild project `tableau-data-source-publication` (`recover_and_publish`) | `govwifi-terraform/govwifi-metrics/codebuild.tf` |
 
 ### AWS Infrastructure
@@ -167,6 +179,15 @@ BEGIN: [service-report-active-tls-user-rolling-count-2026-06-25] Fetching and up
 END: [service-report-active-tls-user-rolling-count-2026-06-25] Done.
 BEGIN: [service-report-peap-unique-users-rolling-count-2026-06-25] Fetching and uploading PEAP metrics...
 END: [service-report-peap-unique-users-rolling-count-2026-06-25] Done.
+```
+
+Similarly, check the Admin ECS task logs under the Admin log group for entries from `metrics:publish_organisations_added`:
+
+```
+BEGIN: [service-report-organisations-addeded-rolling-count-2026-06-25] Fetching and uploading organisations added metrics...
+END: [service-report-organisations-addeded-rolling-count-2026-06-25] Done.
+BEGIN: [service-report-organisations-addeded-mtd-count-2026-06-25] Fetching and uploading organisations added metrics...
+END: [service-report-organisations-addeded-mtd-count-2026-06-25] Done.
 ```
 
 A warning line such as `Metrics API upload failed` means the Metrics API was unreachable or returned an error.
@@ -354,6 +375,20 @@ Generates 30-day rolling window and month-to-date unique PEAP user counts from t
 
 Each metric is stored in `S3_METRICS_BUCKET` as a daily JSON file (e.g. `service-report-peap-unique-users-rolling-count-2026-07-17`) containing `{"count":...,"run_time":...,"metric_name":...,"period":"day","date":...}` and posted to the Metrics API (`POST /v1/record`).
 The task is invoked automatically every morning as part of `bundle exec rake publish_daily_total_metrics`.
+
+#### Organisations Added Task
+
+**Task**: `bundle exec rake metrics:publish_organisations_added[date]`
+
+Generates 30-day rolling window and month-to-date counts of organisations added from the `organisations` table in the Admin database where `created_at` timestamps are counted.
+
+| Metric | Use Case Class | S3 Folder / Metric Name | Tableau Display Name |
+|--------|----------------|-------------------------|----------------------|
+| `monthly_rolling_organisations_added` | `Performance::UseCase::MonthlyRollingWindowOrganisationsAdded` | `service-report-organisations-addeded-rolling-count` | Organisations Added |
+| `month_to_date_organisations_added` | `Performance::UseCase::MonthToDateOrganisationsAdded` | `service-report-organisations-addeded-mtd-count` | Organisations Added (MTD) |
+
+Each metric is stored in `S3_METRICS_BUCKET` as a daily single-line JSON file (e.g. `service-report-organisations-addeded-rolling-count-2026-07-17`) containing `{"count":...,"metric_name":"service-report-organisations-addeded-rolling-count","period":"day","date":...}` and posted to the Metrics API (`POST /v1/record`).
+The task runs daily at 06:15 UTC as an ECS scheduled task on the Admin cluster (`daily_publish_organisations_added`), defined in `govwifi-terraform/govwifi-admin/event-rules.tf` and `scheduled-tasks.tf`.
 
 
 ### Admin Application Tasks
