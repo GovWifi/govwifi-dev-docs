@@ -1,7 +1,7 @@
 ---
 title: Monitoring
 weight: 20
-last_reviewed_on: "2026-09-29"
+last_reviewed_on: "2026-10-20"
 review_in: 6 months
 ---
 
@@ -53,6 +53,12 @@ An ECS scheduled task in the Logging API runs `bundle exec rake publish_daily_to
 | `service-report-organisations-addeded-mtd-count` | Organisations Added (MTD) |
 | `service-report-locations-added-rolling-count` | Locations Added |
 | `service-report-locations-added-mtd-count` | Locations Added (MTD) |
+| `service-report-end-user-signups-rolling-count` | End User Signups |
+| `service-report-end-user-signups-mtd-count` | End User Signups (MTD) |
+| `service-report-email-signups-rolling-count` | Email Signups |
+| `service-report-email-signups-mtd-count` | Email Signups (MTD) |
+| `service-report-sms-signups-rolling-count` | SMS Signups |
+| `service-report-sms-signups-mtd-count` | SMS Signups (MTD) |
 
 The source code for the collection logic is in `govwifi-logging-api`:
 - Tasks: `tasks/recover_active_users.rb`, `tasks/publish_active_tls_users.rb`, `tasks/publish_peap_unique_users.rb`
@@ -79,6 +85,15 @@ Additionally, locations added metrics are collected in `govwifi-admin`:
 - API client: `lib/use_cases/performance_platform/metrics_api_publisher.rb`
 
 The Admin task is triggered daily at 06:15 UTC by the `<env_name>-daily-publish-locations-added` CloudWatch Event Rule (see `govwifi-terraform/govwifi-admin/event-rules.tf`).
+
+Additionally, end user, email, and SMS signups metrics are collected in `govwifi-admin`:
+- Task: `lib/tasks/publish_user_signups.rake` (`metrics:publish_user_signups`)
+- Sender: `lib/performance/metrics/user_signups_metric_sender.rb`
+- Use cases: `lib/performance/use_case/monthly_rolling_window_end_user_signups.rb`, `lib/performance/use_case/month_to_date_end_user_signups.rb`, `lib/performance/use_case/monthly_rolling_window_email_signups.rb`, `lib/performance/use_case/month_to_date_email_signups.rb`, `lib/performance/use_case/monthly_rolling_window_sms_signups.rb`, `lib/performance/use_case/month_to_date_sms_signups.rb`
+- Repository: `lib/performance/repository/user_signups.rb`
+- API client: `lib/use_cases/performance_platform/metrics_api_publisher.rb`
+
+The Admin task is triggered daily at 06:30 UTC by the `<env_name>-daily-publish-user-signups` CloudWatch Event Rule (see `govwifi-terraform/govwifi-admin/event-rules.tf`).
 
 **Phase 2 — Tableau publication (daily at 07:05 UTC)**
 
@@ -134,6 +149,7 @@ The published data source appears under the project folder named in the `PROJECT
 | Daily at 05:00 UTC | `rake publish_daily_total_metrics` (Logging API ECS task) | `govwifi-terraform/govwifi-api/event-rules.tf` |
 | Daily at 06:15 UTC | `rake metrics:publish_organisations_added` (Admin ECS task) | `govwifi-terraform/govwifi-admin/event-rules.tf` |
 | Daily at 06:15 UTC | `rake metrics:publish_locations_added` (Admin ECS task) | `govwifi-terraform/govwifi-admin/event-rules.tf` |
+| Daily at 06:30 UTC | `rake metrics:publish_user_signups` (Admin ECS task) | `govwifi-terraform/govwifi-admin/event-rules.tf` |
 | Daily at 07:05 UTC | CodeBuild project `tableau-data-source-publication` (`recover_and_publish`) | `govwifi-terraform/govwifi-metrics/codebuild.tf` |
 
 ### AWS Infrastructure
@@ -209,6 +225,23 @@ BEGIN: [service-report-locations-added-rolling-count-2026-06-25] Fetching and up
 END: [service-report-locations-added-rolling-count-2026-06-25] Done.
 BEGIN: [service-report-locations-added-mtd-count-2026-06-25] Fetching and uploading locations added metrics...
 END: [service-report-locations-added-mtd-count-2026-06-25] Done.
+```
+
+And for `metrics:publish_user_signups`:
+
+```
+BEGIN: [service-report-end-user-signups-rolling-count-2026-06-25] Fetching and uploading user signups metrics...
+END: [service-report-end-user-signups-rolling-count-2026-06-25] Done.
+BEGIN: [service-report-end-user-signups-mtd-count-2026-06-25] Fetching and uploading user signups metrics...
+END: [service-report-end-user-signups-mtd-count-2026-06-25] Done.
+BEGIN: [service-report-email-signups-rolling-count-2026-06-25] Fetching and uploading user signups metrics...
+END: [service-report-email-signups-rolling-count-2026-06-25] Done.
+BEGIN: [service-report-email-signups-mtd-count-2026-06-25] Fetching and uploading user signups metrics...
+END: [service-report-email-signups-mtd-count-2026-06-25] Done.
+BEGIN: [service-report-sms-signups-rolling-count-2026-06-25] Fetching and uploading user signups metrics...
+END: [service-report-sms-signups-rolling-count-2026-06-25] Done.
+BEGIN: [service-report-sms-signups-mtd-count-2026-06-25] Fetching and uploading user signups metrics...
+END: [service-report-sms-signups-mtd-count-2026-06-25] Done.
 ```
 
 A warning line such as `Metrics API upload failed` means the Metrics API was unreachable or returned an error.
@@ -424,6 +457,24 @@ Generates 30-day rolling window and month-to-date counts of organisation locatio
 
 Each metric is stored in `S3_METRICS_BUCKET` as a daily single-line JSON file (e.g. `service-report-locations-added-rolling-count-2026-07-17`) containing `{"count":...,"metric_name":"service-report-locations-added-rolling-count","period":"day","date":...}` and posted to the Metrics API (`POST /v1/record`).
 The task runs daily at 06:15 UTC as an ECS scheduled task on the Admin cluster (`daily_publish_locations_added`), defined in `govwifi-terraform/govwifi-admin/event-rules.tf` and `scheduled-tasks.tf`.
+
+#### User Signups Task
+
+**Task**: `bundle exec rake metrics:publish_user_signups[date]`
+
+Generates 30-day rolling window and month-to-date counts of End User Signups (all rows), Email Signups (`contact LIKE '%@%'`), and SMS Signups (`contact LIKE '+%'`) from the `userdetails` table in the Users database where `created_at` timestamps are counted.
+
+| Metric | Use Case Class | S3 Folder / Metric Name | Tableau Display Name |
+|--------|----------------|-------------------------|----------------------|
+| `monthly_rolling_end_user_signups` | `Performance::UseCase::MonthlyRollingWindowEndUserSignups` | `service-report-end-user-signups-rolling-count` | End User Signups |
+| `month_to_date_end_user_signups` | `Performance::UseCase::MonthToDateEndUserSignups` | `service-report-end-user-signups-mtd-count` | End User Signups (MTD) |
+| `monthly_rolling_email_signups` | `Performance::UseCase::MonthlyRollingWindowEmailSignups` | `service-report-email-signups-rolling-count` | Email Signups |
+| `month_to_date_email_signups` | `Performance::UseCase::MonthToDateEmailSignups` | `service-report-email-signups-mtd-count` | Email Signups (MTD) |
+| `monthly_rolling_sms_signups` | `Performance::UseCase::MonthlyRollingWindowSmsSignups` | `service-report-sms-signups-rolling-count` | SMS Signups |
+| `month_to_date_sms_signups` | `Performance::UseCase::MonthToDateSmsSignups` | `service-report-sms-signups-mtd-count` | SMS Signups (MTD) |
+
+Each metric is stored in `S3_METRICS_BUCKET` as a daily single-line JSON file (e.g. `service-report-end-user-signups-rolling-count-2026-07-17`) containing `{"count":...,"metric_name":"service-report-end-user-signups-rolling-count","period":"day","date":...}` and posted to the Metrics API (`POST /v1/record`).
+The task runs daily at 06:30 UTC as an ECS scheduled task on the Admin cluster (`daily_publish_user_signups`), defined in `govwifi-terraform/govwifi-admin/event-rules.tf` and `scheduled-tasks.tf`.
 
 
 ### Admin Application Tasks
