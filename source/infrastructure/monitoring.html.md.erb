@@ -1,7 +1,7 @@
 ---
 title: Monitoring
 weight: 20
-last_reviewed_on: "2026-10-20"
+last_reviewed_on: "2026-11-03"
 review_in: 6 months
 ---
 
@@ -61,8 +61,8 @@ An ECS scheduled task in the Logging API runs `bundle exec rake publish_daily_to
 | `service-report-sms-signups-mtd-count` | SMS Signups (MTD) |
 
 The source code for the collection logic is in `govwifi-logging-api`:
-- Tasks: `tasks/recover_active_users.rb`, `tasks/publish_active_tls_users.rb`, `tasks/publish_peap_unique_users.rb`
-- Senders: `lib/performance/metrics/daily_metrics_sender.rb`, `lib/performance/metrics/tls_metric_sender.rb`, `lib/performance/metrics/peap_metric_sender.rb`
+- Tasks: `tasks/recover_active_users.rb`, `tasks/publish_active_tls_users.rb`, `tasks/publish_peap_unique_users.rb`, `tasks/migrate_peap_unique_users.rb`
+- Senders / Migrators: `lib/performance/metrics/daily_metrics_sender.rb`, `lib/performance/metrics/tls_metric_sender.rb`, `lib/performance/metrics/peap_metric_sender.rb`, `lib/performance/metrics/peap_metric_migrator.rb`
 - Use cases: `lib/performance/use_case/monthly_rolling_window_active_tls_users.rb`, `lib/performance/use_case/month_to_date_active_tls_users.rb`, `lib/performance/use_case/monthly_rolling_window_peap_unique_users.rb`, `lib/performance/use_case/month_to_date_peap_unique_users.rb`
 - API client: `lib/performance/metrics/metrics_api_publisher.rb`
 
@@ -122,9 +122,10 @@ A Ruby/Sinatra application running on AWS ECS Fargate, backed by an Aurora Postg
 |----------|---------------|---------|
 | `GET /health` | No | Health check — verifies DB connectivity |
 | `POST /v1/record` | Bearer token | Record a single metric data point |
+| `PUT /v1/record` | Bearer token | Update an existing `(name, datetime)` metric data point (or insert if absent) |
 | `GET /v1/data/export` | Bearer token | Export metric records as a JSON file, with optional filters (`year`, `month`, `from`, `to`, `name`) |
 
-The `metrics` table has a composite unique index on `(name, datetime)`, so duplicate records are rejected with a `422` response.
+The `metrics` table has a composite unique index on `(name, datetime)`, so duplicate `POST /v1/record` requests are rejected with a `422` response, while `PUT /v1/record` updates the existing record in place.
 
 Infrastructure is defined in `govwifi-terraform/govwifi-metrics/`.
 
@@ -420,7 +421,7 @@ The task is invoked automatically every morning as part of `bundle exec rake pub
 
 **Task**: `bundle exec rake publish_peap_unique_users[date]`
 
-Generates 30-day rolling window and month-to-date unique PEAP user counts from the `sessions` table where `username IS NOT NULL`, `success = 1`, and distinct `username`s are counted.
+Generates 30-day rolling window and month-to-date unique PEAP user counts from the `sessions` table where `success = 1` by subtracting unique TLS certificate users (`COUNT(DISTINCT cert_serial, cert_issuer)` where `username IS NULL`) from active username-based users (`COUNT(DISTINCT username)`), floored at `0` using MySQL's `GREATEST(..., 0)` and `CAST(COUNT(...) AS SIGNED)`.
 
 | Metric | Use Case Class | S3 Folder / Metric Name | Tableau Display Name |
 |--------|----------------|-------------------------|----------------------|
@@ -429,6 +430,42 @@ Generates 30-day rolling window and month-to-date unique PEAP user counts from t
 
 Each metric is stored in `S3_METRICS_BUCKET` as a daily JSON file (e.g. `service-report-peap-unique-users-rolling-count-2026-07-17`) containing `{"count":...,"run_time":...,"metric_name":...,"period":"day","date":...}` and posted to the Metrics API (`POST /v1/record`).
 The task is invoked automatically every morning as part of `bundle exec rake publish_daily_total_metrics`.
+
+##### Migrating Historical PEAP Unique Users Records
+
+**Task**: `bundle exec rake migrate_peap_unique_users[year]`
+
+Because the `sessions` table in `govwifi-logging-api` is trimmed after 32 days, historical `PEAP Unique Users` and `PEAP Unique Users (MTD)` records in the Metrics API database can be recalculated and updated in place from the daily `Active Users` and `TLS Unique Users` series stored in `govwifi-metrics-api`.
+
+When executed on a `govwifi-logging-api` ECS container (which already has `METRICS_API_ENDPOINT`, `METRICS_API_BEARER_TOKEN`, and `S3_METRICS_BUCKET` configured), `Performance::Metrics::PeapMetricMigrator`:
+
+1. Exports the specified year's metrics from the Metrics API (`GET /v1/data/export?year=<year>`).
+2. Matches each date's `service-report-peap-unique-users-rolling-count` and `service-report-peap-unique-users-mtd-count` record with the corresponding `monthly-rolling-window-total-active-users` / `service-report-active-tls-user-rolling-count` (and MTD equivalents).
+3. Recalculates the PEAP count as `[active_count - tls_count, 0].max`.
+4. Updates each record in the Metrics API database via `PUT /v1/record` and overwrites the corresponding daily JSON file in `S3_METRICS_BUCKET`.
+
+**Example usage**:
+
+```bash
+# Migrate the current calendar year (default)
+bundle exec rake migrate_peap_unique_users
+
+# Migrate a specific calendar year
+bundle exec rake "migrate_peap_unique_users[2026]"
+```
+
+**Example log output**:
+
+```text
+BEGIN: Migrating PEAP unique user metrics for year 2026...
+Fetching metrics export for year 2026...
+[service-report-peap-unique-users-rolling-count-2026-07-17] Updating count from 1000 to 750 (active: 1000, tls: 250)...
+[service-report-peap-unique-users-rolling-count-2026-07-17] Migration succeeded (status: 200).
+[service-report-peap-unique-users-mtd-count-2026-07-17] Updating count from 400 to 280 (active: 400, tls: 120)...
+[service-report-peap-unique-users-mtd-count-2026-07-17] Migration succeeded (status: 200).
+PEAP metrics migration complete for 2026: 2 updated, 0 skipped, 0 failed.
+END: Migrating PEAP unique user metrics for year 2026 done.
+```
 
 #### Organisations Added Task
 
