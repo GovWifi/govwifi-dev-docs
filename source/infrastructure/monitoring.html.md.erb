@@ -1,7 +1,7 @@
 ---
 title: Monitoring
 weight: 20
-last_reviewed_on: "2026-11-06"
+last_reviewed_on: "2026-11-11"
 review_in: 6 months
 ---
 
@@ -476,6 +476,82 @@ Generates 30-day rolling window and month-to-date counts of End User Signups (al
 
 Each metric is stored in `S3_METRICS_BUCKET` as a daily single-line JSON file (e.g. `service-report-end-user-signups-rolling-count-2026-07-17`) containing `{"count":...,"metric_name":"service-report-end-user-signups-rolling-count","period":"day","date":...}` and posted to the Metrics API (`POST /v1/record`).
 The task runs daily at 06:30 UTC as an ECS scheduled task on the Admin cluster (`daily_publish_user_signups`), defined in `govwifi-terraform/govwifi-admin/event-rules.tf` and `scheduled-tasks.tf`.
+
+#### Historical Reporting Data Import Tool
+
+**CLI**: `./bin/import_historical_metrics [options] [ODS_FILE_PATH]`
+**Rake Task**: `bundle exec rake "metrics:import_historical_data[file_path,dry_run]"`
+
+Back-populates historical monthly reporting figures from the `GovWifi Monthly Reporting Figures.ods` spreadsheet into the Metrics API so they can be recovered and published to Tableau Cloud.
+
+**Source files in `govwifi-admin`**:
+
+- CLI executable: `bin/import_historical_metrics`
+- Rake task: `lib/tasks/import_historical_metrics.rake` (`metrics:import_historical_data`)
+- Use case: `lib/use_cases/administrator/import_historical_metrics.rb` (`UseCases::Administrator::ImportHistoricalMetrics`)
+- Spreadsheet gateway: `lib/gateways/historical_reporting_spreadsheet.rb` (`Gateways::HistoricalReportingSpreadsheet`)
+- API client: `lib/use_cases/performance_platform/metrics_api_publisher.rb` (`UseCases::PerformancePlatform::MetricsApiPublisher`)
+
+**Worksheets and date ranges imported**:
+
+| Worksheet tab | Date range (inclusive) | Recorded `datetime` timestamps |
+|---------------|------------------------|--------------------------------|
+| `Archive` | January 2023 – October 2025 | `2023-01-01T00:00:00Z` – `2025-10-01T00:00:00Z` |
+| `Monthly Analytics Reporting` | November 2025 – September 2026 | `2025-11-01T00:00:00Z` – `2026-09-01T00:00:00Z` |
+
+Each monthly figure is recorded at `00:00:00Z` on the first day of that month (`YYYY-MM-01T00:00:00Z`). Blank cells (such as Email and SMS signups between January 2023 and May 2023) are skipped automatically, and negative values (such as location adjustments in mid-2023) are imported as-is.
+
+**Column-to-metric mapping**:
+
+Each of the 9 spreadsheet columns is mapped to both its rolling-window and month-to-date (`MTD`) metric names in the Metrics API:
+
+| Spreadsheet column header | Rolling metric name (`POST /v1/record`) | MTD metric name (`POST /v1/record`) | Tableau display names |
+|---------------------------|-----------------------------------------|-------------------------------------|-----------------------|
+| `Active Users` | `monthly-rolling-window-total-active-users` | `month-to-date-total-active-users` | `Active Users` / `Active Users (MTD)` |
+| `TLS Unique Users` | `service-report-active-tls-user-rolling-count` | `service-report-active-tls-user-mtd-count` | `TLS Unique Users` / `TLS Unique Users (MTD)` |
+| `PEAP Unique Users` | `service-report-peap-unique-users-rolling-count` | `service-report-peap-unique-users-mtd-count` | `PEAP Unique Users` / `PEAP Unique Users (MTD)` |
+| `Roaming Users` | `monthly-rolling-window-total-roaming-users` | `month-to-date-total-roaming-users` | `Roaming Users` / `Roaming Users (MTD)` |
+| `End User Sign-ups` | `service-report-end-user-signups-rolling-count` | `service-report-end-user-signups-mtd-count` | `End User Signups` / `End User Signups (MTD)` |
+| `Email Signups` | `service-report-email-signups-rolling-count` | `service-report-email-signups-mtd-count` | `Email Signups` / `Email Signups (MTD)` |
+| `SMS signups` | `service-report-sms-signups-rolling-count` | `service-report-sms-signups-mtd-count` | `SMS Signups` / `SMS Signups (MTD)` |
+| `Organisation Added` | `service-report-organisations-addeded-rolling-count` | `service-report-organisations-addeded-mtd-count` | `Organisations Added` / `Organisations Added (MTD)` |
+| `Locations Added` | `service-report-locations-added-rolling-count` | `service-report-locations-added-mtd-count` | `Locations Added` / `Locations Added (MTD)` |
+
+**Re-entrancy and non-overwriting behaviour**:
+
+The import tool is re-entrant and safe to run multiple times as new metric fields are added:
+
+1. It posts each data point to `POST /v1/record` (never `PUT /v1/record`).
+2. The Metrics API enforces a composite unique constraint on `(name, datetime)` in PostgreSQL. If a metric record already exists for that `(name, datetime)`, the API refuses to overwrite it and returns `422 Unprocessable Entity` (`Metric '<name>' at '<datetime>' already exists`).
+3. `UseCases::Administrator::ImportHistoricalMetrics` treats duplicate responses as `skipped` and only inserts missing `(name, datetime)` records, logging a final summary of `total`, `recorded`, `skipped`, and `failed` counts.
+
+**Usage examples**:
+
+1. **Dry-run validation** (parses and validates the ODS file without contacting the Metrics API):
+
+   ```bash
+   ./bin/import_historical_metrics --dry-run "/Users/oisin/Downloads/GovWifi Monthly Reporting Figures.ods"
+   ```
+
+2. **Publish historical data to the Metrics API** (intermediate step):
+
+   ```bash
+   METRICS_API_ENDPOINT="https://metrics.<env_subdomain>.service.gov.uk" \
+   METRICS_API_BEARER_TOKEN="<api_key>" \
+   ./bin/import_historical_metrics "/Users/oisin/Downloads/GovWifi Monthly Reporting Figures.ods"
+   ```
+
+   Or via Rake:
+
+   ```bash
+   METRICS_API_ENDPOINT="https://metrics.<env_subdomain>.service.gov.uk" \
+   METRICS_API_BEARER_TOKEN="<api_key>" \
+   bundle exec rake "metrics:import_historical_data[/Users/oisin/Downloads/GovWifi Monthly Reporting Figures.ods]"
+   ```
+
+3. **Recover and publish to Tableau Cloud**:
+
+   Once the historical records have been imported into the Metrics API, trigger the `tableau-data-source-publication` CodeBuild project (see [Manually triggering a Tableau publication](#manually-triggering-a-tableau-publication)) or run `recover_and_publish` in `govwifi-metrics-data-publisher` to export the dataset from the Metrics API (`GET /v1/data/export`) and publish the updated `.hyper` extract to Tableau Cloud.
 
 
 ### Admin Application Tasks
