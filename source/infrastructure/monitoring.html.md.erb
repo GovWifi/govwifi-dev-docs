@@ -528,7 +528,7 @@ The import task is re-entrant and safe to run multiple times as new metric field
 1. **Dry-run validation** (parses and validates the ODS file without contacting the Metrics API):
 
    ```bash
-   bundle exec rake "metrics:import_historical_data[/Users/oisin/Downloads/GovWifi Monthly Reporting Figures.ods,true]"
+   bundle exec rake "metrics:import_historical_data[$HOME/GovWifi Monthly Reporting Figures.ods,true]"
    ```
 
 2. **Publish historical data to the Metrics API** (intermediate step):
@@ -536,10 +536,10 @@ The import task is re-entrant and safe to run multiple times as new metric field
    ```bash
    METRICS_API_ENDPOINT="https://metrics.<env_subdomain>.service.gov.uk" \
    METRICS_API_BEARER_TOKEN="<api_key>" \
-   bundle exec rake "metrics:import_historical_data[/Users/oisin/Downloads/GovWifi Monthly Reporting Figures.ods]"
+   bundle exec rake "metrics:import_historical_data[$HOME/GovWifi Monthly Reporting Figures.ods]"
    ```
 
-   Or using the default path (`/Users/oisin/Downloads/GovWifi Monthly Reporting Figures.ods` or `HISTORICAL_METRICS_ODS_PATH`):
+   Or using the default path (`$HOME/GovWifi Monthly Reporting Figures.ods` or `HISTORICAL_METRICS_ODS_PATH`):
 
    ```bash
    METRICS_API_ENDPOINT="https://metrics.<env_subdomain>.service.gov.uk" \
