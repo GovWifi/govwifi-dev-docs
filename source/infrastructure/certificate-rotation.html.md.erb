@@ -7,12 +7,12 @@ review_in: 6 months
 
 # GovWifi certificates
 
-We rotate the GovWifi certificate every year.
-The actual rotation is handled by the SREs (Site Reliablity Engineers).
+We rotate the GovWifi certificate before it expires.
+The actual rotation is handled by the SREs (Site Reliability Engineers).
 
 ##  How To Purchase A New Certificate
 
-In depth information on how to purchase new certificates, generate keys and validate the [certificate files can be found in this guide](https://docs.google.com/document/d/1lr3f1svljXxRNknoB_67WaItAmZJpj5Y2ao1Yw7wxxU/). The document contains sensitive information, so you will need to be a verfied member of GovWifi team in order to access it.
+In depth information on how to purchase new certificates, generate keys and validate the [certificate files can be found in this guide](https://docs.google.com/document/d/1lr3f1svljXxRNknoB_67WaItAmZJpj5Y2ao1Yw7wxxU/). The document contains sensitive information, so you will need to be a verified member of GovWifi team in order to access it.
 
 ##  How To Rotate The Certificates On The Radius Servers
 
@@ -37,7 +37,7 @@ To run the sync certs job follow the instructions below:
 8. Run the smoke-tests (full instructions on how to do this can be found [here](https://docs.google.com/document/d/1RHNkGxJLr4BPPUlFgqDzCF6mSOXK0Kj2Yfb-GHXXNIA/edit)
 9. Repeat this process in the other region, if you wish to release the new certificates there.
 
-A separate sync-cert job exists for our two GovWifi regions (eu-west-1 and eu-west-2). This allows us to test the effects of a certificate change in one region only, and is very useful for network administrations when they are testing their configurations.
+A separate sync-cert job exists for our two GovWifi regions (eu-west-1 and eu-west-2). This allows us to test the effects of a certificate change in one region only, and is very useful for network administrators when they are testing their configurations.
 
 ## Update the product pages
 
