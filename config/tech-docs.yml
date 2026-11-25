@@ -40,3 +40,6 @@ github_repo: GovWifi/govwifi-dev-docs
 # Metadata for Slack for review monitoring (using Daniel the Manual Spaniel)
 owner_slack_workspace: gds
 default_owner_slack: '#govwifi'
+
+redirects:
+  "/admin-site/update_organisation’s _email_domain.html": "/admin-site/update_organisation_email_domain.html"
